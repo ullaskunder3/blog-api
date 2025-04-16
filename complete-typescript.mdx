@@ -1,0 +1,81 @@
+---
+title: 'Complete Typescript'
+subtitle: 'Learn react 18 with typescript'
+id: 009
+date: 'Aug 25, 2023'
+tag: ['ts', 'dom', 'basic', 'guide']
+---
+
+## Static Typing
+
+Typescript allows you to specify types for variables, parameters, return types and more. This helps type-related errors during development.
+
+```ts
+let age: number = 30;
+let name: string = "foo";
+let isDev: boolean = true;
+
+function add(x:number, y:number):number{return x+y}
+```
+
+## Interfaces
+
+Interfaces define the structure of objects
+
+```ts
+interface Person {
+    name: string;
+    age: number;
+}
+
+function greet(person: Person): void {
+    console.log(`Hello, ${person.name}!`);
+}
+
+let user = { name: "foo", age: 25 };
+greet(user);
+```
+
+## Classes and inheritance
+
+Typescript supports classes and inheritance
+
+```ts
+class Fruit{
+    //properties
+    name:string;
+    color:string;
+
+    // constructor
+    constructor(name:string, color:string){
+        this.name = name;
+        this.color = color;
+    }
+
+    // Method
+    describe():string{
+        return `This ${this.name} is ${this.color}`;
+    }
+
+}
+
+// subClass
+class Appple extends Fruit{
+    //additional property
+    taste: string;
+
+    // constructor
+    constructor(name:string, color:string, taste: string){
+        super(name, color);
+        this.taste = taste;
+    }
+    // Override method
+    describe():string{
+        return `${super.describe()} It tastes ${this.taste}.`;
+    }
+}
+// create instance
+const apple = new Apple("Apple", "red", "sweet");
+```
+
+# 

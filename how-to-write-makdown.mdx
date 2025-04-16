@@ -1,0 +1,204 @@
+---
+title: "What is markdown"
+subtitle: "what how and why to know about markdown readme.md content"
+id: 004
+date: "April 25, 2021"
+tag: ['markdown', 'basic', 'guide']
+---
+
+# h1 Heading
+
+```md
+# h1 Heading
+```
+- This creates a top-level heading using `h1` tag.
+
+![Ullas Profile](/images/ullaskunder-transparent.png)
+
+```md
+![Ullas Profile](/images/ullaskunder-transparent.png)
+```
+- This adds an image to your document, displaying the image located at `/images/ullaskunder-transparent.png`.
+
+## h2 Heading
+
+```md
+## h2 Heading
+```
+- This creates a second-level heading using `h2` tag.
+
+
+### h3 Heading
+
+```md
+### h3 Heading
+```
+- This creates a third-level heading using `h3` tag.
+
+#### h4 Heading
+
+```md
+#### h4 Heading
+```
+- This creates a fourth-level heading using `h4` tag.
+
+##### h5 Heading
+
+```md
+##### h5 Heading
+```
+- This creates a fifth-level heading using `h5` tag.
+
+###### h6 Heading
+
+```md
+###### h6 Heading
+```
+- This creates a sixth-level heading using `h6` tag.
+
+---
+
+***
+
+```md
+---
+
+***
+```
+- These lines create horizontal rules to visually separate sections.
+
+"Smartypants, double quotes" and 'single quotes'
+
+```md
+"Smartypants, double quotes" and 'single quotes'
+```
+- This demonstrates the usage of smart quotes and shows the difference between double and single quotes.
+
+**This is bold text**
+
+```md
+**This is bold text**
+```
+- This formats the text as bold using double asterisks.
+
+*This is italic text*
+
+```md
+*This is italic text*
+```
+- This formats the text as italic using single asterisks.
+
+~~Strikethrough~~
+
+```md
+~~Strikethrough~~
+```
+- This adds a strikethrough effect to the text.
+
+> Blockquotes can also be nested...
+>> ...by using additional greater-than signs right next to each other...
+> > > ...or with spaces between arrows.
+
+```md
+> Blockquotes can also be nested...
+>> ...by using additional greater-than signs right next to each other...
+> > > ...or with spaces between arrows.
+```
+- This creates a blockquote with nested levels.
+
+Unordered
++ Create a list by starting a line with `+`, `-`, or `*`
++ one piece is real
+
+```md
+Unordered
++ Create a list by starting a line with `+`, `-`, or `*`
++ one piece is real
+```
+- This creates an unordered list using the `+`, `-`, or `*` characters.
+
+
+Ordered
+1. Kaizoku Ou ni, Ore wa naru!
+
+```md
+Ordered
+1. Kaizoku Ou ni, Ore wa naru!
+```
+- This creates an ordered list using numbers.
+
+Inline `code`
+
+```md
+Inline `code`
+```
+- This formats inline code using backticks.
+
+```md
+Indented code
+    // Some comments
+    line 1 of code
+    line 2 of code
+    line 3 of code
+```
+- This displays indented code using four spaces or a tab.
+
+Block code "fences"
+
+```md
+Block code "fences"
+```
+- This formats code blocks using three backticks.
+
+```js
+Syntax highlighting
+var foo = function (bar) {
+  return bar++;
+};
+console.log(foo(5));
+```
+- This demonstrates syntax highlighting for a specific programming language, in this case, JavaScript.
+
+| Option | Description |
+| ------ | ----------- |
+| data   | path to data files to supply the data that will be passed into templates. |
+
+```md
+| Option | Description |
+| ------ | ----------- |
+| data   | path to data files to supply the data that will be passed into templates. |
+```
+- This creates a table with two columns: Option and Description.
+
+[link text](http://dev.nodeca.com)
+
+```md
+[link text](http://dev.nodeca.com)
+```
+- This creates a hyperlink with custom link text.
+
+![Minion](https://upload.wikimedia.org/wikipedia/en/thumb/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg/220px-One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg)
+
+```md
+![Minion](https://upload.wikimedia.org/wikipedia/en/thumb/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg/220px-One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg)
+```
+- This adds an image to the document using a URL.
+
+![Alt text][id]
+[id]: https://octodex.github.com/images/dojocat.jpg  "The Dojocat"
+
+```md
+![Alt text][id]
+[id]: https://octodex.github.com/images/dojocat.jpg  "The Dojocat"
+
+```
+// THIS IS NOT THE Doja Cat YOUR ARE THINKING
+
+- This creates an image with a reference-style syntax.
+
+The killer feature of `markdown-it` is very effective support of [syntax plugins](https://www.npmjs.org/browse/keyword/markdown-it-plugin).
+
+```md
+The killer feature of `markdown-it` is very effective support of [syntax plugins](https://www.npmjs.org/browse/keyword/markdown-it-plugin).
+```
+- This creates a hyperlink with a description of the markdown-it library.

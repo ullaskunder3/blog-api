@@ -1,0 +1,105 @@
+---
+title: 'JavaScript In-Place Array Manipulation'
+subtitle: 'Remove Duplicate Numbers from Sorted Arrays in JavaScript'
+id: 003
+date: 'July 10, 2023'
+tag: ['js', 'array']
+---
+
+# JavaScript In-Place Array Manipulation
+
+In this article, we will explore a JavaScript function that removes duplicate numbers from a given sorted array in place. This means that the function modifies the original array directly, without creating a new array.
+
+```js
+var removeDuplicates = function (nums) {
+  if (nums.length === 0) {
+    return 0;
+  }
+  let count = 1;
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] !== nums[i - 1]) {
+      nums[count] = nums[i];
+      count++;
+    }
+  }
+  nums.length = count;
+  return nums;
+  // return the array or the array length
+};
+removeDuplicates([0, 0, 1, 1, 1, 2, 2, 3, 3, 4])
+```
+
+Given the input array `[0, 0, 1, 1, 1, 2, 2, 3, 3, 4]`, here's the detailed execution:
+
+1. Initial state:
+   - `nums`: `[0, 0, 1, 1, 1, 2, 2, 3, 3, 4]`
+   - `count`: 1
+
+2. Iteration 1 (i = 1):
+   - `nums[i]`: 0
+   - `nums[i - 1]`: 0
+   - Since `nums[i]` is equal to `nums[i - 1]`, it means the current element is a duplicate.
+   - No modifications are made.
+
+3. Iteration 2 (i = 2):
+   - `nums[i]`: 1
+   - `nums[i - 1]`: 0
+   - Since `nums[i]` is not equal to `nums[i - 1]`, it means the current element is unique.
+   - The unique element (1) is assigned to `nums[count]` (index 1) and `count` is incremented.
+   - Modified `nums`: `[0, 1, 1, 1, 1, 2, 2, 3, 3, 4]`
+   - Updated `count`: 2
+
+4. Iteration 3 (i = 3):
+   - `nums[i]`: 1
+   - `nums[i - 1]`: 1
+   - Since `nums[i]` is equal to `nums[i - 1]`, it means the current element is a duplicate.
+   - No modifications are made.
+
+5. Iteration 4 (i = 4):
+   - `nums[i]`: 1
+   - `nums[i - 1]`: 1
+   - Since `nums[i]` is equal to `nums[i - 1]`, it means the current element is a duplicate.
+   - No modifications are made.
+
+6. Iteration 5 (i = 5):
+   - `nums[i]`: 2
+   - `nums[i - 1]`: 1
+   - Since `nums[i]` is not equal to `nums[i - 1]`, it means the current element is unique.
+   - The unique element (2) is assigned to `nums[count]` (index 2) and `count` is incremented.
+   - Modified `nums`: `[0, 1, 2, 1, 1, 2, 2, 3, 3, 4]`
+   - Updated `count`: 3
+
+7. Iteration 6 (i = 6):
+   - `nums[i]`: 2
+   - `nums[i - 1]`: 1
+   - Since `nums[i]` is equal to `nums[i - 1]`, it means the current element is a duplicate.
+   - No modifications are made.
+
+8. Iteration 7 (i = 7):
+   - `nums[i]`: 3
+   - `nums[i - 1]`: 2
+   - Since `nums[i]` is not equal to `nums[i - 1]`, it means the current element is unique.
+   - The unique element (3) is assigned to `nums[count]` (index 3) and `count` is incremented.
+   - Modified `nums`: `[0, 1, 2, 3, 1, 2, 2, 3, 3, 4]`
+   - Updated `count`: 4
+
+9. Iteration 8 (i = 8):
+   - `nums[i]`: 3
+   - `nums[i - 1]`: 3
+   - Since `nums[i]` is equal to `nums[i - 1]`, it means the current element is a duplicate.
+   - No modifications are made.
+
+10. Iteration 9 (i = 9):
+    - `nums[i]`: 4
+    - `nums[i - 1]`: 3
+    - Since `nums[i]` is not equal to `nums[i - 1]`, it means the current element is unique.
+    - The unique element (4) is assigned to `nums[count]` (index 4) and `count` is incremented.
+    - Modified `nums`: `[0, 1, 2, 3, 4, 2, 2, 3, 3, 4]`
+    - Updated `count`: 5
+
+11. The loop ends since we have iterated through all elements of the array.
+
+12. The `nums.length` property is set to `count` to remove any excess elements.
+    - Final `nums`: `[0, 1, 2, 3, 4]`
+
+The modified `nums` array contains only the unique elements `[0, 1, 2, 3, 4]`.
