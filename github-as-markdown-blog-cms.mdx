@@ -1,0 +1,353 @@
+---
+title: "Using GitHub as a Headless CMS for Blogs with Next.js – and Publishing to dev.to + RSS!"
+subtitle: "Learn how to build a fast, modern blog using GitHub as a content store, MDX for writing, Next.js for rendering, and RSS feeds to publish automatically to dev.to"
+id: 017
+date: "2025-05-08"
+tags:
+  [
+    "nextjs",
+    "mdx",
+    "rss",
+    "dev.to",
+    "github",
+    "blog",
+    "next-api",
+    "ssr",
+    "seo",
+    "cms",
+  ]
+---
+
+# Using GitHub as a Headless CMS for Blogs with Next.js – and Publishing to dev.to + RSS!
+
+📝 GitHub → 🔁 Next.js API → 🌍 Blog + 🔗 RSS → ✨ dev.to
+
+**TL;DR:**
+We're managing blog posts with MDX files inside a GitHub repo (private for safety), pulling them into our **Next.js** app as a **read-only CMS**, rendering them dynamically with Markdown, generating an RSS feed, and publishing to platforms like **dev.to**. Clean, modern, no bloated CMS, no rebuilds on blog edits. 💡
+
+---
+
+### 🧐 Why GitHub as a Blog CMS?
+
+Most devs use tools like Notion, Sanity, WordPress (ew 😬), or even headless CMSes like Contentful. But what if I told you...
+
+> “You already have a version-controlled, Markdown-friendly, Git-powered CMS sitting in your toolbelt.”
+
+That’s right: **GitHub**.
+
+We manage all blog content as `.mdx` files in a **dedicated repo**, separate from our actual portfolio or blog frontend. Why?
+
+#### 🔥 The Pain Point
+
+If you include blog `.mdx` content **inside your Next.js app repo**, every time you tweak a typo, you have to:
+
+- Push code
+- Rebuild the whole app
+- Redeploy
+
+That’s... not ideal. Especially when the blog isn’t even changing the codebase.
+
+#### 💡 The Solution
+
+So we decoupled it. Blog content lives in a **separate GitHub repo** (like `blog-api`) and our main blog frontend fetches blog files from it using the **GitHub API**.
+
+Private repo? Absolutely.
+
+> Because if it’s public, some clever clowns 🤡 might try to PR garbage or scrape it aggressively. Not today, Internet.
+
+---
+
+### 🗂️ Blog Content Structure
+
+Our `blog-api` repo looks like this:
+
+```powershell
+C:\dev\blog-api
+|
+|-- advance-javascript.mdx
+|-- basic-of-react-hooks.mdx
+|-- basic-of-react17.mdx
+```
+
+Each file contains frontmatter metadata at the top:
+
+```mdx
+---
+title: "Advance JavaScript"
+subtitle: "Exploring closures, scopes and the weird parts"
+id: 001
+date: "Aug 3, 2023"
+tag: ["js", "closures", "advanced"]
+---
+
+Your content goes here in MDX...
+```
+
+That’s it. Simple, readable, version-controlled.
+
+## 🔌 Wiring It into Next.js
+
+```cmd
+C:.
+│   favicon.ico
+│   head.tsx
+│   Home.tsx
+│   layout.tsx
+│   loading.tsx
+│   manifest.ts
+│   not-found.tsx
+│   page.tsx
+│   robots.ts
+│   sitemap.ts
+│
+├───api
+│   ├───blog
+│   │   └───v2
+│   │       │   route.ts // GET all blog posts
+│   │       └───[slug]
+|                  └───route.ts // GET blog by slug
+│
+├───blogs
+│   │   BlogClient.tsx
+│   │   page.tsx // Blogs list page ssr
+│   └───[slug]
+│         └───page.tsx // Dynamic blog post page
+│
+├───rss
+│    └───route.ts // RSS feed route
+│
+└───lib
+    ├───assets.ts
+    ├───dateFormater.ts
+    ├───fetchBlogFromGithub.ts
+    // Fetch all MDX posts via GitHub API
+    ├───fetchPostFromAPI.ts
+    // Fetch single post from GitHub raw
+    ├───getBaseUrl.ts
+    ├───getProjectsData.ts
+    ├───mailApi.ts
+    ├───markdownToHtml.ts
+    ├───nodemailer.ts
+    ├───utils.ts
+    └───getPostMetaData.ts
+    // Pull metadata from all blog posts
+
+```
+
+Now let’s break down how we make this dynamic in **Next.js** (App Router), _without_ rebuilding every time.
+
+---
+
+### 🧠 Step 1: API route to fetch all blog posts
+
+Inside `/app/api/blog/v2/route.ts`, we add:
+
+```ts
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const posts = await fetchBlogPostsFromGitHub();
+  return NextResponse.json(posts);
+}
+```
+
+Why dynamic? Because we want **on-demand rendering** with periodic revalidation, not static build-time fetches.
+
+---
+
+### 🪝 Step 2: `fetchBlogPostsFromGitHub()` from our GitHub repo
+
+In `/lib/fetchBlogFromGithub.ts`:
+
+```ts
+const res = await fetch(
+  `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents?ref=${BRANCH}`,
+  { headers: { Authorization: `Bearer ${GITHUB_TOKEN}` } }
+);
+
+const files = await res.json();
+const mdxFiles = files.filter((file) => file.name.endsWith(".mdx"));
+```
+
+We loop through each file and use [gray-matter](https://github.com/jonschlinkert/gray-matter) to parse the frontmatter:
+
+```ts
+const { data, content } = matter(rawContent);
+```
+
+That gives us metadata like `title`, `date`, and the actual blog `content`.
+
+This returns a nice, digestible array of blog posts to the API consumer (our blog frontend).
+
+---
+
+### 📦 Client-side Fetch & Rendering
+
+In `/app/blogs/page.tsx`, we call our API:
+
+```tsx
+const posts = await getPostMetaData();
+return <BlogClient posts={posts} />;
+```
+
+Inside `getPostMetaData()`:
+
+```ts
+const response = await fetch(`${BASE_URL}/api/blog/v2`);
+```
+
+Why fetch from an API instead of reading `.mdx` files directly?
+
+- Keeps server-side data handling clean
+- Allows for revalidation with `next: { revalidate: 60 }`
+
+---
+
+### 🔍 View Individual Posts
+
+In `[slug]/page.tsx`, we dynamically fetch the content:
+
+```ts
+const postContent = await fetchPostFromAPI(slug);
+```
+
+This hits:
+
+```ts
+GET / api / blog / v2 / [slug];
+```
+
+Which in turn fetches:
+
+```ts
+https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${slug}.mdx
+```
+
+We parse the raw `.mdx` again using `gray-matter`, then render it with:
+
+```tsx
+<Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+  {postContent.content}
+</Markdown>
+```
+
+Boom. Fully dynamic blog. No build required. New blog post? Just `git push` to your content repo and you’re done. 🎉
+
+## 📰 Bonus: Generating an RSS Feed
+
+RSS is still relevant – especially if you want to syndicate to sites like dev.to or Feedly.
+
+In `/app/rss/route.ts`, we:
+
+1. Call `getPostMetaData()` again
+2. Convert each post to `<item>` XML
+3. Wrap everything in a valid `<rss>` schema
+
+```xml
+<rss version="2.0">
+  <channel>
+    <title>Ullas Kunder Blog</title>
+    <link>https://ullaskunder.com</link>
+    <description>...</description>
+    ${items.join("")}
+  </channel>
+</rss>
+```
+
+Served with:
+
+```ts
+return new NextResponse(rss, {
+  headers: {
+    "Content-Type": "application/xml",
+  },
+});
+```
+
+You now have an **auto-updating RSS feed** from your GitHub-powered blog. 🤘
+
+Want to make sure it’s valid? Use this tool from W3C:
+
+- In **development**, use **Validate by Direct Input**
+- Once deployed, use **Validate by URL**
+
+👉 [https://validator.w3.org/feed/](https://validator.w3.org/feed/)
+
+Make sure your XML is well-formed — dev.to and other RSS consumers can be picky.
+
+---
+
+### ✍️ Publish to dev.to via RSS
+
+Platforms like **dev.to** can automatically sync articles from your RSS feed.
+
+Just head to your dev.to settings → **Extensions → RSS Integration**, and paste your RSS feed URL (e.g., `https://yourdomain.com/rss`).
+
+Once dev.to pulls in your post, you'll see it listed in your dashboard under **Posts**:
+
+But here’s the catch:
+🚫 There’s **no visible "Publish" button** or any clear indication on that list view — which honestly sucks. You’d expect to be able to publish right from there, but no.
+
+Instead, you have to **click "Edit"** on a post.
+Only _inside the edit screen_ will you see the message:
+
+> `Unpublished Post. This URL is public but secret, so share at your own discretion.` > _(Click to edit)_
+
+Click that link, and in the editor, you’ll see the synced metadata at the top:
+
+```md
+---
+title: Essential React Hooks: A Comprehensive Guide
+published: false
+date: 2023-07-19 00:00:00 UTC
+tags: react, hooks, beginners
+canonical_url: https://ullaskunder.tech/blogs/basic-of-react-hooks
+---
+```
+
+👉 All you need to do is change:
+
+✅ `published: false` to `published: true`
+
+...then save. Boom — it’s live.
+
+> 🛠️ Hopefully dev.to improves this flow — it would be far more intuitive to allow publishing directly from the post list.
+
+## 🧠 What We’ve Achieved
+
+- ✅ Keep content and code separate
+- ✅ Avoid rebuilding the blog for every new post
+- ✅ Secure and version-controlled Markdown storage
+- ✅ Dynamic content loading with caching
+- ✅ Auto-generating RSS feed
+- ✅ Easy syndication to dev.to or elsewhere
+
+---
+
+## 🔐 Why a Private GitHub Repo?
+
+Because the internet is... well, the internet.
+
+- Public repo = free-for-all
+- Random people might PR garbage
+- Or worse, spam bots might crawl it constantly
+
+So, we keep it **private** and authenticate with a **GitHub token** (stored securely via environment variables like `GITHUB_TOKEN`).
+
+## 🚀 Future Enhancements
+
+- ✍️ Add support for content previews (e.g., `/drafts`)
+- 🧠 Add AI summaries or highlights
+- 🔎 Integrate search indexing (Algolia, Meilisearch)
+- 💌 Generate email newsletters from RSS
+
+## 💬 Wrapping Up
+
+Using GitHub as your blog CMS might feel odd at first, but it makes total sense for dev-centric blogs:
+
+- Markdown is natural for us
+- Git is already part of our workflow
+- Next.js handles the rendering like a champ
+
+> Write locally. Commit. Push. Done.
+> Let your blog do the heavy lifting, not your deploy pipeline.
