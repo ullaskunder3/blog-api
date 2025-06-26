@@ -1,0 +1,118 @@
+---
+title: "Check if a Subarray with Zero Sum Exists – Prefix Sum in Action"
+subtitle: "Understand how to check for a zero-sum subarray using both brute-force and prefix sum techniques, with step-by-step code in Python and JavaScript."
+id: 019
+date: "2025-06-26"
+tags:
+  [
+    "algorithms",
+    "arrays",
+    "prefixsum",
+    "python",
+    "javascript",
+    "dsa",
+    "subarray",
+    "brute-force",
+    "interview",
+    "hashset",
+  ]
+---
+
+# 🧠 Check if Subarray with 0 Sum Exists
+
+### ✅ Simple Statement
+
+Given an array, check if there’s a **contiguous subarray** (1 or more elements) whose sum is zero.
+
+### 🧩 Example
+
+```text
+Input: [4, -6, 3, -1, 4]
+Output: True
+(4 + -6 + 3 + -1 = 0)
+```
+
+### 🧾 Pseudocode (Optimal – Using Prefix Sum Set)
+
+```
+initialize empty set
+initialize prefix_sum = 0
+for each element in array:
+    add to prefix_sum
+    if prefix_sum is 0 or already exists in set:
+        return true
+    add prefix_sum to set
+return false
+```
+
+### 🧪 Stack Trace
+
+**Input:** `[4, -6, 3, -1, 4]`
+
+| Index | Value | Prefix Sum | Set (Seen Sums) | Found?   |
+| ----- | ----- | ---------- | --------------- | -------- |
+| 0     | 4     | 4          | {}              | ❌       |
+| 1     | -6    | -2         | {4}             | ❌       |
+| 2     | 3     | 1          | {4, -2}         | ❌       |
+| 3     | -1    | 0          | {4, -2, 1}      | ✅ Zero! |
+
+### 🐍 Python Code
+
+#### Brute-force (O(n²))
+
+```python
+def has_zero_sum_subarray_brute(nums):
+    for i in range(len(nums)):
+        total = 0
+        for j in range(i, len(nums)):
+            total += nums[j]
+            if total == 0:
+                return True
+    return False
+```
+
+#### Optimal (O(n))
+
+```python
+def has_zero_sum_subarray_optimal(nums):
+    seen = set()
+    prefix_sum = 0
+    for num in nums:
+        prefix_sum += num
+        if prefix_sum == 0 or prefix_sum in seen:
+            return True
+        seen.add(prefix_sum)
+    return False
+```
+
+### 📜 JavaScript Code
+
+#### Brute-force
+
+```js
+function hasZeroSumSubarrayBrute(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    let sum = 0;
+    for (let j = i; j < arr.length; j++) {
+      sum += arr[j];
+      if (sum === 0) return true;
+    }
+  }
+  return false;
+}
+```
+
+#### Optimal
+
+```js
+function hasZeroSumSubarrayOptimal(arr) {
+  const seen = new Set();
+  let prefixSum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    prefixSum += arr[i];
+    if (prefixSum === 0 || seen.has(prefixSum)) return true;
+    seen.add(prefixSum);
+  }
+  return false;
+}
+```

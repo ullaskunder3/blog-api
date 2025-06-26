@@ -1,0 +1,106 @@
+---
+title: "Find Pair with Given Sum in an Array – Brute-force and Optimal Approaches"
+subtitle: "Explore how to find two elements in an array that sum up to a target value using brute-force and hash map techniques in both Python and JavaScript."
+id: 018
+date: "2025-06-26"
+tags:
+  [
+    "algorithms",
+    "arrays",
+    "hashmap",
+    "python",
+    "javascript",
+    "dsa",
+    "brute-force",
+    "optimal",
+    "interview",
+    "coding",
+  ]
+---
+
+# 🧠 Find a Pair with a Given Sum
+
+### ✅ Simple Statement
+
+Given an array of integers and a target value, check if there's a **pair of elements** in the array whose **sum equals the target**.
+
+### 🧩 Example
+
+```text
+Input: nums = [8, 7, 2, 5, 3, 1], target = 10
+Output: True (Because 7 + 3 = 10)
+```
+
+### 🧾 Pseudocode (Optimal – Using Hash Map)
+
+```
+create empty map
+for each number in array:
+    if (target - current number) exists in map:
+        return true
+    add current number to map
+return false
+```
+
+### 🧪 Stack Trace (Optimal Method)
+
+**Input:** `[8, 7, 2, 5, 3, 1]`, **target = 10**
+
+| Step | Index | Value | Map    | `target - value` | Found? |
+| ---- | ----- | ----- | ------ | ---------------- | ------ |
+| 1    | 0     | 8     | {}     | 2                | ❌     |
+| 2    | 1     | 7     | {8}    | 3                | ❌     |
+| 3    | 2     | 2     | {8, 7} | 8                | ✅     |
+
+### 🐍 Python Code
+
+#### Brute-force (O(n²))
+
+```python
+def find_pair_brute(nums, target):
+    for i in range(len(nums)):
+        for j in range(i+1, len(nums)):
+            if nums[i] + nums[j] == target:
+                return True
+    return False
+```
+
+#### Optimal (O(n))
+
+```python
+def find_pair_optimal(nums, target):
+    seen = {}
+    for i, num in enumerate(nums):
+        if target - num in seen:
+            return True
+        seen[num] = i
+    return False
+```
+
+### 📜 JavaScript Code
+
+#### Brute-force
+
+```js
+function findPairBrute(nums, target) {
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      if (nums[i] + nums[j] === target) return true;
+    }
+  }
+  return false;
+}
+```
+
+#### Optimal
+
+```js
+function findPairOptimal(nums, target) {
+  const seen = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    if (seen.has(target - nums[i])) return true;
+    seen.set(nums[i], i);
+  }
+  return false;
+}
+```
