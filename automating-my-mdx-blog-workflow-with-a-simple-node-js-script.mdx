@@ -1,0 +1,59 @@
+---
+title: "Automating My MDX Blog Workflow with a Simple Node.js Script"
+subtitle: "Streamlining MDX blog posts with a single Node.js command"
+id: 021
+date: "2025-09-04"
+tag: ["nodejs", "automation", "mdx", "blogging", "productivity"]
+---
+
+# Automating My MDX Blog Workflow with a Simple Node.js Script
+
+I maintain a **private MDX blog repo** that I sometimes push updates from. My portfolio website displays these posts as a blog page.
+
+But over time, a few small annoyances piled up:
+
+- Every time I write a new post, I have to **manually create the `.mdx` file** with a proper filename like `sorting-p5-visualization.mdx`.
+- I need to **check the last post’s ID** to assign the next one correctly.
+- I have to manually add **frontmatter** (ID, date, title, tags) every time.
+
+It wasn’t a huge problem, but it **felt repetitive and slow**.
+
+So, I decided to automate it.
+
+---
+
+## The Automation Script
+
+With a simple Node.js script, I can now:
+
+- Generate a **new post boilerplate** with just **one command**.
+- Provide a **title** (required) and **optional tags**.
+- Automatically update the **next ID** and **current date**.
+- Check the **last post info**, including file path.
+- Search for any post **by ID**.
+
+commands:
+
+```bash
+# Create a new post with tags
+pnpm new "Print all zero sum subarray" --tag "algorithm,arrays,dsa,python,hashmap,interview"
+
+# Check last post
+pnpm last
+
+# Get info about a post by ID
+pnpm post --id 19
+```
+
+The script takes care of creating the `.mdx` file, adding frontmatter, and maintaining IDs. No more copying boilerplate or double-checking filenames.
+
+---
+
+## Why This Feels “Pretty Cool”
+
+- **One-liner creation:** I can generate a full post skeleton in seconds.
+- **Safe ID management:** Never worry about duplicate IDs.
+- **Optional tags:** Helps keep posts organized without extra typing.
+- **Quick info retrieval:** Last post or specific ID info is just a command away.
+
+For a private or small MDX-based blog, this is a simple but **huge productivity boost**.
