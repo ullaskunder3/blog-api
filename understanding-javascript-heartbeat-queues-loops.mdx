@@ -230,7 +230,7 @@ Now, lets continue with the next phase of the execution.
 
 **Phase 2: Microtask Queue Execution (First Pass)**
 
-1. The `Event Loop` sees the Call Stack is empty. It checks the **Microtask Queue**, which is _not_ empty. It takes the first microtask (`Promise 1 callback`) and pushes it onto the Call Stack. 🔄
+1. `Event Loop` sees the Call Stack is empty. It checks the **Microtask Queue**, which is _not_ empty. It takes the first microtask (`Promise 1 callback`) and pushes it onto the Call Stack. 🔄
 2. `console.log("3. Promise.resolve (Microtask)")`; inside `Promise 1 callback` executes.
    - **Output:** 3. Promise.resolve (Microtask) 🖨️
    - Call Stack: `[console.log, Promise 1 callback EC, Global EC] -> [Promise 1 callback EC, Global EC]`
@@ -239,7 +239,7 @@ Now, lets continue with the next phase of the execution.
    - Macrotask Queue: \[`setTimeout callback (from script)`, `setTimeout inside Promise callback`]
 4. `Promise 1 callback` finishes. It's popped from the Call Stack.
    - Call Stack: `[Global EC]`
-5. The `Event Loop` checks the **Microtask Queue** again. It's still not empty. It takes the next microtask (`Promise 2 callback`) and pushes it onto the Call Stack.
+5. `Event Loop` checks the **Microtask Queue** again. It's still not empty. It takes the next microtask (`Promise 2 callback`) and pushes it onto the Call Stack.
 6. `console.log("4. Another Promise.resolve (Microtask)")`; inside `Promise 2 callback` executes.
    - **Output:** 4. Another Promise.resolve (Microtask) 🖨️
    - Call Stack: `[console.log, Promise 2 callback EC, Global EC] -> [Promise 2 callback EC, Global EC]`
@@ -252,7 +252,7 @@ Now, lets continue with the next phase of the execution.
 
 **Phase 3: Macrotask Queue Execution (First Macrotask)**
 
-1. The `Event Loop` sees the Call Stack is empty and the Microtask Queue is empty. It checks the **Macrotask Queue**, which is _not_ empty. It takes **one** macrotask (`setTimeout callback from script`) and pushes it onto the Call Stack.
+1. `Event Loop` sees the Call Stack is empty and the Microtask Queue is empty. It checks the **Macrotask Queue**, which is _not_ empty. It takes **one** macrotask (`setTimeout callback from script`) and pushes it onto the Call Stack.
 2. `console.log("5. setTimeout callback (Macrotask)")`; inside `setTimeout callback` executes.
    - **Output:** 5. setTimeout callback (Macrotask) 🖨️
    - Call Stack: `[console.log, setTimeout callback EC, Global EC] -> [setTimeout callback EC, Global EC]`
@@ -268,7 +268,7 @@ Now, lets continue with the next phase of the execution.
 
 **Phase 4: Microtask Queue Execution (Second Pass)**
 
-1. The `Event Loop` sees the Call Stack is empty. It checks the **Microtask Queue**, which is _not_ empty. It takes the `Promise inside setTimeout callback` and pushes it onto the Call Stack.
+1. `Event Loop` sees the Call Stack is empty. It checks the **Microtask Queue**, which is _not_ empty. It takes the `Promise inside setTimeout callback` and pushes it onto the Call Stack.
 2. `console.log("6. Promise.resolve inside setTimeout (Microtask)")`; executes.
    - **Output:** 6. Promise.resolve inside setTimeout (Microtask) 🖨️
    - Call Stack: `[console.log, Promise inside setTimeout EC, Global EC] -> [Promise inside setTimeout EC, Global EC]`
@@ -281,7 +281,7 @@ Now, lets continue with the next phase of the execution.
 
 **Phase 5: Macrotask Queue Execution (Second Macrotask)**
 
-1. The `Event Loop` sees the Call Stack is empty and the Microtask Queue is empty. It checks the **Macrotask Queue**, which is _not_ empty. It takes the _next_ macrotask (`setTimeout inside Promise callback`) and pushes it onto the Call Stack.
+1. `Event Loop` sees the Call Stack is empty and the Microtask Queue is empty. It checks the **Macrotask Queue**, which is _not_ empty. It takes the _next_ macrotask (`setTimeout inside Promise callback`) and pushes it onto the Call Stack.
 2. `console.log("7. setTimeout inside Promise (Macrotask)")`; executes.
    - **Output:** 7. setTimeout inside Promise (Macrotask) 🖨️
    - Call Stack: `[console.log, setTimeout inside Promise EC, Global EC] -> [setTimeout inside Promise EC, Global EC]`
