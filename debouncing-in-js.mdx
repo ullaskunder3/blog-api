@@ -1,0 +1,234 @@
+---
+title: "debouncing-in-js"
+subtitle: "How to improve performance and user experience in your web apps using JavaScript debouncing. This guide explains when, why, and how to use debounce with two interactive examples — a basic typing activity tracker and an advanced API search simulator. See how debouncing reduces unnecessary events and network requests with live demos."
+id: 022
+date: "2025-09-09"
+tag:
+  [
+    "JavaScript",
+    "debounce",
+    "throttle",
+    "event handling",
+    "performance optimization",
+    "search input",
+    "scroll events",
+    "requestAnimationFrame",
+    "modern JavaScript",
+  ]
+---
+
+# Understanding Debouncing in JavaScript – Basic and Advanced Demos
+
+Debouncing is a simple but powerful technique in JavaScript that helps you manage how frequently functions are executed in response to events like typing, scrolling, or resizing. In this article, we’ll explain why debouncing is important, how it works, and share two interactive demos to help you learn by seeing it in action.
+
+## ✅ Situation: When Do You Need Debouncing?
+
+When users interact with your website, events like `input`, `scroll`, or `resize` can fire many times per second. If each event triggers an operation like fetching data from a server or updating the UI, it can cause performance issues or unnecessary network requests.
+
+For example:
+
+- Typing into a search bar can trigger API calls for each keystroke.
+- Resizing the window might trigger complex layout calculations dozens of times.
+- Auto-saving data as the user types can flood the server with requests.
+
+In such cases, **debouncing** ensures that the operation only happens after the user pauses their interaction, avoiding wasted effort and making your app faster and smoother.
+
+## ✅ What Is Debouncing?
+
+Debouncing is a technique that ensures a function is only executed after a certain delay has passed since the last time it was triggered. It "waits" until the event stops firing before acting, helping you:
+
+- Optimize performance
+- Reduce unnecessary API calls
+- Improve user experience
+
+## ✅ How Does It Work?
+
+1. Each time the event fires, any pending function call is canceled.
+2. A new timer is set.
+3. The function only runs if the event hasn't fired again during the timer delay.
+
+This way, no matter how frequently the event happens, the function will only run once the user stops interacting.
+
+## ✅ Why Use Debouncing?
+
+- **Reduce load on the browser or server**
+- **Improve responsiveness and animation smoothness**
+- **Avoid excessive network requests**
+- **Create more efficient and scalable applications**
+
+## ✅ Working Example – Typing Activity Tracker (Basic Version)
+
+This example visually demonstrates the concept by counting how many times a user types versus how many times the debounced function is called.
+
+### ▶ See it live here → [Debounce: Typing Activity Tracker](https://codepen.io/ullas_/pen/xbwewJP)
+
+<iframe
+  height="400"
+  style={{ width: "100%" }}
+  scrolling="no"
+  title="Typing Activity Tracker"
+  src="https://codepen.io/ullas_/embed/preview/xbwewJP?default-tab=js,result&theme-id=dark"
+  frameBorder="0"
+  loading="lazy"
+  allowTransparency={true}
+  allowFullScreen={true}
+>
+  See the Pen{" "}
+  <a href="https://codepen.io/ullas_/pen/xbwewJP">Typing Activity Tracker</a> by
+  Ullas (@ullas_) on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+
+### How it works:
+
+- Every keypress is counted and displayed.
+- The debounced counter only increments when typing pauses for 500ms.
+- Users can type quickly and see how debouncing reduces unnecessary updates.
+
+### Code snippet:
+
+```html
+<div class="container">
+  <h2>Debounce Example – Typing Activity Tracker</h2>
+  <input type="text" id="typingInput" placeholder="Start typing..." />
+  <div>
+    <p>
+      <strong>Key presses (without debounce):</strong>
+      <span id="rawCount">0</span>
+    </p>
+    <p>
+      <strong>Key presses (with debounce):</strong>
+      <span id="debouncedCount">0</span>
+    </p>
+  </div>
+</div>
+```
+
+```javascript
+const typingInput = document.getElementById("typingInput");
+const rawCountEl = document.getElementById("rawCount");
+const debouncedCountEl = document.getElementById("debouncedCount");
+
+let rawCount = 0;
+let debouncedCount = 0;
+
+function debounce(fn, delay = 500) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
+typingInput.addEventListener("input", () => {
+  rawCount++;
+  rawCountEl.textContent = rawCount;
+  debouncedInput();
+});
+
+const debouncedInput = debounce(() => {
+  debouncedCount++;
+  debouncedCountEl.textContent = debouncedCount;
+}, 500);
+```
+
+## ✅ Advanced Version – Optimized API Search
+
+In this demo, we simulate a real-world application where users search for data via an API. Every time a user types, an API call could be made — but that would overwhelm the server. With debouncing, only relevant requests are sent after typing pauses.
+
+### ▶ See it live here → [Debounce: Optimized API Search](https://codepen.io/ullas_/pen/NPGmGJq)
+
+<iframe
+  height="500"
+  style={{ width: "100%" }}
+  scrolling="no"
+  title="Optimized API Search"
+  src="https://codepen.io/ullas_/embed/preview/NPGmGJq?default-tab=js,result&theme-id=dark"
+  frameBorder="0"
+  loading="lazy"
+  allowTransparency={true}
+  allowFullScreen={true}
+>
+  See the Pen{" "}
+  <a href="https://codepen.io/ullas_/pen/NPGmGJq">Optimized API Search</a> by
+  Ullas (@ullas_) on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+
+### How it works:
+
+- Typing events are counted live.
+- API calls are counted separately to show how debouncing optimizes network requests.
+- Data is fetched from the JSONPlaceholder API and filtered in real-time.
+
+### Code snippet:
+
+```html
+<div class="container">
+  <h2>Debounce Example – Optimized API Search</h2>
+  <input type="text" id="userSearch" placeholder="Search users by name..." />
+  <div class="stats">
+    <p><strong>Typing events:</strong> <span id="typingCount">0</span></p>
+    <p><strong>API calls made:</strong> <span id="apiCallCount">0</span></p>
+  </div>
+  <ul id="userList"></ul>
+</div>
+```
+
+```javascript
+const userSearch = document.getElementById("userSearch");
+const userList = document.getElementById("userList");
+const typingCountEl = document.getElementById("typingCount");
+const apiCallCountEl = document.getElementById("apiCallCount");
+
+let typingCount = 0;
+let apiCallCount = 0;
+
+function debounce(fn, delay = 500) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
+async function fetchUsers(query) {
+  apiCallCount++;
+  apiCallCountEl.textContent = apiCallCount;
+
+  if (!query.trim()) {
+    userList.innerHTML = "";
+    return;
+  }
+
+  const response = await fetch(`https://jsonplaceholder.typicode.com/users`);
+  const users = await response.json();
+  const filtered = users.filter((user) =>
+    user.name.toLowerCase().includes(query.toLowerCase())
+  );
+  userList.innerHTML =
+    filtered.map((user) => `<li>${user.name} (${user.email})</li>`).join("") ||
+    "<li>No users found</li>";
+}
+
+const debouncedFetch = debounce((e) => {
+  fetchUsers(e.target.value);
+}, 500);
+
+userSearch.addEventListener("input", (e) => {
+  typingCount++;
+  typingCountEl.textContent = typingCount;
+  debouncedFetch(e);
+});
+```
+
+## ✅ Final Thoughts
+
+Debouncing is a must-know technique for JavaScript developers. It helps in improving app performance, reducing unnecessary operations, and ensuring a smooth user experience. With these two interactive examples — one simple and one connected to a real API — you now have the tools to understand and implement debounce effectively.
+
+live demos:
+
+- 🔗 [Debounce: Typing Activity Tracker](https://codepen.io/ullas_/pen/xbwewJP)
+- 🔗 [Debounce: Optimized API Search](https://codepen.io/ullas_/pen/NPGmGJq)
