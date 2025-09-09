@@ -1,11 +1,11 @@
 ---
-title: "Deep dive into JavaScript heartbeat: queues, loops & Async"
-subtitle: "Learn how JavaScript Event Loop, Call Stack, Microtasks, and Macrotasks collaborate to prevent blocking, manage asynchronous tasks, and power seamless interactions on modern web applications."
+title: "Deep dive into Javascript heartbeat: queues, loops & Async"
+subtitle: "Learn how Javascript Event Loop, Call Stack, Microtasks, and Macrotasks collaborate to prevent blocking, manage asynchronous tasks, and power seamless interactions on modern web applications."
 id: 023
 date: "2025-09-09"
 tag:
   [
-    "javascript",
+    "Javascript",
     "event-loop",
     "task-queue",
     "microtasks",
@@ -18,9 +18,9 @@ tag:
   ]
 ---
 
-# Understanding javascript heartbeat: queues, loops & Async
+# Understanding Javascript heartbeat: queues, loops & Async
 
-JavaScript is everywhere. 🤯 From powering interactive websites to driving server-side applications, it's the engine of the modern web. But how does it handle so many tasks, like user clicks, data fetching, and animations 🤖, all without freezing up? 👾 The secret lies in something called the **Event Loop** and its associated **Task Queues**.
+Javascript is everywhere. 🤯 From powering interactive websites to driving server-side applications, it's the engine of the modern web. But how does it handle so many tasks, like user clicks, data fetching, and animations 🤖, all without freezing up? 👾 The secret lies in something called the **Event Loop** and its associated **Task Queues**.
 
 This blog post will unravel the "what, why, and how" of these core concepts. we will explore:
 
@@ -28,38 +28,40 @@ This blog post will unravel the "what, why, and how" of these core concepts. we 
 - **Why** do we need them? (The problem of synchronous code)🧐
 - **How** do they work together to create a smooth, responsive user experience?😃
 
-we will also peer into the 🚒 JavaScript Engine's **Execution Context** and **Call Stack**, tracing the full lifecycle of a task, even touching on how loops interact with this intricate dance. And yes, we will build some simple, illustrative code examples along the way to make these powerful ideas intuitive!
+we will also peer into the 🚒 Javascript Engine's **Execution Context** and **Call Stack**, tracing the full lifecycle of a task, even touching on how loops interact with this intricate dance. And yes, we will build some simple, illustrative code examples along the way to make these powerful ideas intuitive!
+
+> 📝 I’m jotting down everything I know and understand about this concept in Javascript as part of my learning journey. I’m constantly exploring, experimenting, and updating myself 🚀. If you have thoughts, suggestions, or ideas 💡, feel free to drop a comment at [https://ullaskunder.tech/guestbook](https://ullaskunder.tech/guestbook). I’d love to hear from you! ❤️
 
 ## THANKS
 
-I would like to express my gratitude to the following YouTube creators for their impactful videos that greatly aided my understanding of JavaScript core concepts:
+I would like to express my gratitude to the following YouTube creators for their impactful videos that greatly aided my understanding of Javascript core concepts:
 
-- `CodeSmith` (Will Sentance): "JavaScript The Hard Parts: Object Oriented Programming"
+- `CodeSmith` (Will Sentance): "Javascript The Hard Parts: Object Oriented Programming"
 - `Kyle Simpson`: "You Don't Know JS" (also available on YouTube)
-- `Dave Gray`: YouTube JavaScript Playlist
+- `Dave Gray`: YouTube Javascript Playlist
 - `Enes Karakaş`: Advanced Object Concepts (available on YouTube)
 - `Kyle Cook`: Web Dev Simplified (available on YouTube)
 - `Keith Peters`: @codingmat (available on YouTube)
 
 ### The "What": Execution Context, Call Stack, and the Event Loop's Mechanism
 
-Before we dive into queues, lets establish the `fundamental environment` where JavaScript code runs.
+Before we dive into queues, lets establish the `fundamental environment` where Javascript code runs.
 
-#### The Execution Context: JavaScript's Workspace 🤓
+#### The Execution Context: Javascript's Workspace 🤓
 
-When JavaScript code executes, it does so within an **Execution Context** 😃
+When Javascript code executes, it does so within an **Execution Context** 😃
 
 Think of this as a special, `isolated environment` where a `piece of code runs`.
 
 Each function call creates its own new execution context. This context contains:
 
 1. **Variable Environment:** Where variables (like var, let, const) and function declarations are stored for the current scope.
-2. **Lexical Environment:** This is closely related to the variable environment and determines how scope chaining works (how JavaScript finds variables in outer scopes).
+2. **Lexical Environment:** This is closely related to the variable environment and determines how scope chaining works (how Javascript finds variables in outer scopes).
 3. **this binding:** The value of the this keyword for that context.
 
 There is always a **Global Execution Context** (for code not inside any function), and then a new **Function Execution Context** is created every time a function is called.
 
-#### The Call Stack: JavaScript's To-Do List (Synchronous Only!)
+#### The Call Stack: Javascript's To-Do List (Synchronous Only!)
 
 The **Call Stack** (often just called "the stack") is a `Last-In`, `First-Out` `(LIFO)` data structure that manages all the execution contexts created during the execution of a script.
 
@@ -67,7 +69,7 @@ Imagine a `stack of plates` 🤔💭:
 
 - When a function is called, its execution context is `pushed` onto the top of the stack.
 - When that function finishes executing, its context is `popped` off the stack.
-- JavaScript always `executes` the code at the `very top` of the `stack`.
+- Javascript always `executes` the code at the `very top` of the `stack`.
 
 lets see this in action:
 
@@ -104,11 +106,11 @@ Here's how the Call Stack would evolve:
 11. console.log("End of script") `executes`.
 12. Global script finishes, **Global EC** `popped`.
 
-**Important:** JavaScript is a **single-threaded** language. This means it can only do `one thing` `at a time`. If a function on the Call Stack takes a long time to execute, it "blocks" everything else. The browser becomes unresponsive, animations freeze, and UI updates stop. This is where our `Task Queues` 😎 come in!
+**Important:** Javascript is a **single-threaded** language. This means it can only do `one thing` `at a time`. If a function on the Call Stack takes a long time to execute, it "blocks" everything else. The browser becomes unresponsive, animations freeze, and UI updates stop. This is where our `Task Queues` 😎 come in!
 
 #### The Event Loop and Task Queues: The Asynchronous Managers 👨‍💼
 
-To `overcome` the `single-threaded` `limitation` and `prevent blocking`, JavaScript uses the **Event Loop** in together with two primary types of
+To `overcome` the `single-threaded` `limitation` and `prevent blocking`, Javascript uses the **Event Loop** in together with two primary types of
 
 Task Queues:
 
@@ -139,18 +141,18 @@ The Event Loop orchestrates the execution flow, ensuring responsiveness by intel
 
 Imagine you click a button on a webpage, and that button's action involves fetching some data from a server. This network request can take hundreds of milliseconds, or even seconds, depending on internet speed.
 
-If JavaScript were purely synchronous, this is what would happen:
+If Javascript were purely synchronous, this is what would happen:
 
 1. `Click` event occurs.
 2. `fetch()` request is initiated.
-3. **JavaScript waits, doing absolutely nothing else**,🫠 until the fetch() request completes.
-4. Only after the data arrives does JavaScript continue executing.
+3. **Javascript waits, doing absolutely nothing else**,🫠 until the fetch() request completes.
+4. Only after the data arrives does Javascript continue executing.
 
 During this waiting period, your webpage would be completely frozen! 🤯 You couldn't scroll, click other buttons, or see any animations. 💩 This is a terrible user experience.
 
-#### Asynchronous JavaScript to the Rescue! 🦸
+#### Asynchronous Javascript to the Rescue! 🦸
 
-This is why asynchronous operations and the Event Loop are critical. When you `initiate` an `asynchronous task` (like `setTimeout`, `fetch`, or `clicking a button`), JavaScript doesn't wait for it. Instead:
+This is why asynchronous operations and the Event Loop are critical. When you `initiate` an `asynchronous task` (like `setTimeout`, `fetch`, or `clicking a button`), Javascript doesn't wait for it. Instead:
 
 1. It **tells** the `browser` (or `Node.js runtime`) to **handle** that task. 🖥️
 2. It **immediately** moves on to the next line of code. ▶️
@@ -401,7 +403,7 @@ Once the promise resolves (i.e., the setTimeout finishes), the async function's 
 
 ### Intuition: The Kitchen Analogy
 
-Imagine a busy kitchen where a single chef (JavaScript's single thread) is preparing a meal.
+Imagine a busy kitchen where a single chef (Javascript's single thread) is preparing a meal.
 
 - **The Chef's Hands** (`Call Stack`): 🧑‍🍳 The chef can only do one thing at a time with their hands – chop vegetables 🍅, stir a pot 🍲, flip a pancake 🥘. whatever they are doing right now is on their `hands` (`Call Stack`).
 - **The Immediate Order List** (`Microtask Queue`): 📝 This is a small notepad right next to the chef. If someone asks for a `quick`, `urgent task` (like "taste this sauce!") that `doesn't take long`, the chef will finish whatever is currently in their hands, then _immediately_ check this notepad and do ALL those urgent tasks `before` `moving` to anything else.
@@ -414,8 +416,9 @@ Imagine a busy kitchen where a single chef (JavaScript's single thread) is prepa
 
 This **constant checking** and **prioritizing** `ensures` that the kitchen (your browser) never completely freezes, and urgent small tasks get handled quickly, even if There is a big cake baking! 🦸
 
-**Further Reading (and inspiration from global tech perspectives):**
+**Further Reading:**
 
 - [Philip Roberts: What the heck is the event loop anyway?](https://www.youtube.com/watch?v=8aGhZQkoFbQ) (A classic, highly recommended talk)
-- [MDN Web Docs: Concurrency model and Event Loop](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop)
-- [Tasks, microtasks, queues and schedules](https://javascript.info/event-loop) (A very thorough breakdown)
+- [MDN Web Docs: Concurrency model and Event Loop](https://developer.mozilla.org/en-US/docs/Web/Javascript/EventLoop)
+- [Tasks, microtasks, queues and schedules](https://Javascript.info/event-loop) (A very thorough breakdown)
+- [Event loops: microtasks & macrotasks](https://Javascript.info/event-loop) (it's a good one)
