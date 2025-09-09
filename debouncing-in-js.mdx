@@ -133,6 +133,69 @@ const debouncedInput = debounce(() => {
 }, 500);
 ```
 
+## ✅ Trace
+
+Step 1: function debounce(fn, delay)
+
+- `fn` is the function we want to delay from execution
+- `delay` default tp 500ms if not passed
+- A new `execution context` is created for `debounce` when called
+- let `timeoutId` lives in the closure (meaning the inner function returned can still access it) so even after debounce finishes
+
+step 2: return (...args)=>{}
+
+- Now `...args` a (rest parameter) collects any arguments passed into an array
+  - ex: if the returned function is called like fn(1, 2), then args = [1,2]
+
+Step 3: clearTimeout(timeoutId)
+
+- Clears any existing timer from previous calls
+- ex: `Cancel the previous scheduled call of fn`
+- Why? Because we only want the last event after the user stops typing
+
+Step 4: timeoutId = setTimeout(() => { fn.apply(this, args); }, delay);
+
+- `setTimeout` schedules a new function to run after delay of milliseconds
+- Inside `setTimeout`:
+  - `fn.apply(this, args)` calls fn with:
+    - `this` = current context
+    - `args` = the arguments collected from (...args)
+
+Why .apply?
+[javascript-under-the-hood-4-bind-call-and-apply](https://codeburst.io/javascript-under-the-hood-pt-4-bind-call-and-apply-22e2b46b3882)
+
+- `.apply` allows you to control `this` and pass an array of arguments to the function.
+- Equivalent to `fn(arg1, arg2, ...)`
+- In this case, `args` ensures whatever arguments the user typed (like event) get passed to the original function
+
+Step 5: Event Listener
+
+- `addEventListener("input"{})` → JS registers a callback function to run every time the user types a key.
+- Event loop behavior:
+
+  1. User types => browser fires input event => pushes the callback onto the task
+     queue.
+  2. Event loop takes it and executes the callback.
+
+- Inside callback:
+  - `rawcount++` => increments immediately (synchronous)
+  - `rawCountE1.textContent = rawCount` => updates DOM (microtask handled after synchronous code).
+  - `debouncedlnput()` => calls the debounced function returned by debounce .
+
+Step 5: The Debounced Function Call
+
+- Line `debouncedInput = debounce(()=>)` :
+
+  1. `debounce(...)` is executed, returning a **function**
+  2. `debouncedInput` now points to `debounced function`.
+
+- Every time the user types:
+
+  1. `debouncedInput()` is called.
+  2. Inside `debounced function`:
+     - Clears any previous timer (`clearTimeout(timeoutId)`) → ensures only **the last input** counts.
+     - Schedules a new `setTimeout` → pushes the inner arrow function onto the **macrotask queue** to run after `500ms`.
+
 ## ✅ Advanced Version – Optimized API Search
 
 In this demo, we simulate a real-world application where users search for data via an API. Every time a user types, an API call could be made — but that would overwhelm the server. With debouncing, only relevant requests are sent after typing pauses.
