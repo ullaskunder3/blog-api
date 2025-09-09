@@ -135,25 +135,25 @@ const debouncedInput = debounce(() => {
 
 ## ✅ Trace
 
-Step 1: function debounce(fn, delay)
+### Step 1: function debounce(fn, delay)
 
 - `fn` is the function we want to delay from execution
 - `delay` default tp 500ms if not passed
 - A new `execution context` is created for `debounce` when called
 - let `timeoutId` lives in the closure (meaning the inner function returned can still access it) so even after debounce finishes
 
-step 2: return (...args)=>{}
+### step 2: return (...args)=>{}
 
 - Now `...args` a (rest parameter) collects any arguments passed into an array
   - ex: if the returned function is called like fn(1, 2), then args = [1,2]
 
-Step 3: clearTimeout(timeoutId)
+### Step 3: clearTimeout(timeoutId)
 
 - Clears any existing timer from previous calls
 - ex: `Cancel the previous scheduled call of fn`
 - Why? Because we only want the last event after the user stops typing
 
-Step 4: timeoutId = setTimeout(() => { fn.apply(this, args); }, delay);
+### Step 4: timeoutId = setTimeout(() => { fn.apply(this, args); }, delay);
 
 - `setTimeout` schedules a new function to run after delay of milliseconds
 - Inside `setTimeout`:
@@ -168,7 +168,7 @@ Why .apply?
 - Equivalent to `fn(arg1, arg2, ...)`
 - In this case, `args` ensures whatever arguments the user typed (like event) get passed to the original function
 
-Step 5: Event Listener
+### Step 5: Event Listener
 
 - `addEventListener("input"{})` → JS registers a callback function to run every time the user types a key.
 - Event loop behavior:
@@ -182,7 +182,7 @@ Step 5: Event Listener
   - `rawCountE1.textContent = rawCount` => updates DOM (microtask handled after synchronous code).
   - `debouncedlnput()` => calls the debounced function returned by debounce .
 
-Step 5: The Debounced Function Call
+### Step 6: The Debounced Function Call
 
 - Line `debouncedInput = debounce(()=>)` :
 
