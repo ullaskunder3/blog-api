@@ -272,25 +272,5 @@
             "beginner-guide"
         ],
         "subtitle": "Learn how Javascript Event Loop, Call Stack, Microtasks, and Macrotasks collaborate to prevent blocking, manage asynchronous tasks, and power seamless interactions on modern web applications."
-    },
-    {
-        "id": 20,
-        "title": "newblog",
-        "slug": "newblog",
-        "date": "2025-09-13",
-        "tags": [
-            "js app"
-        ],
-        "subtitle": ""
-    },
-    {
-        "id": 21,
-        "title": "newblog2",
-        "slug": "newblog2",
-        "date": "2025-09-13",
-        "tags": [
-            "js app"
-        ],
-        "subtitle": ""
     }
 ]
