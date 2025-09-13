@@ -2,31 +2,25 @@
 import fs from "fs";
 import path from "path";
 
-const POSTS_DIR = process.cwd();
+// Paths
+const POSTS_JSON = path.join(process.cwd(), "data", "posts.json");
+const POSTS_DIR = path.join(process.cwd(), "data", "posts");
 
-const extractId = (content) => {
-  const match = content.match(/id:\s*(\d+)/);
-  return match ? parseInt(match[1], 10) : null;
-};
+// Ensure directories exist
+if (!fs.existsSync(POSTS_DIR)) {
+  fs.mkdirSync(POSTS_DIR, { recursive: true });
+}
+if (!fs.existsSync(POSTS_JSON)) {
+  fs.writeFileSync(POSTS_JSON, "[]", "utf-8");
+}
 
-const getNextId = () => {
-  const files = fs.readdirSync(POSTS_DIR).filter((f) => f.endsWith(".mdx"));
-  return (
-    files
-      .map((file) =>
-        extractId(fs.readFileSync(path.join(POSTS_DIR, file), "utf-8"))
-      )
-      .filter(Boolean)
-      .reduce((max, id) => Math.max(max, id), 0) + 1
-  );
-};
+// Read existing posts
+const posts = JSON.parse(fs.readFileSync(POSTS_JSON, "utf-8"));
 
-const slugify = (title) =>
-  title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+// Get next ID
+const id = posts.length ? Math.max(...posts.map((p) => p.id)) + 1 : 1;
 
+// --- CLI Args ---
 const args = process.argv.slice(2);
 if (!args.length) {
   console.error("❌ Please provide a blog title.");
@@ -35,27 +29,51 @@ if (!args.length) {
 
 const title = args[0];
 
-// Tags parsing (supports --tag=value or --tag value)
-const tags = (() => {
-  const eqArg = args.find(
-    (arg) => arg.startsWith("--tag=") || arg.startsWith("--tags=")
-  );
-  if (eqArg)
-    return eqArg
+// Optional fields
+const tagsArg = args.find((arg) => arg.startsWith("--tags="));
+const tags = tagsArg
+  ? tagsArg
       .split("=")[1]
       .split(",")
-      .map((t) => t.trim());
+      .map((t) => t.trim())
+  : [];
 
-  const idxArg = args.findIndex((arg) => arg === "--tag" || arg === "--tags");
-  if (idxArg !== -1 && args[idxArg + 1])
-    return args[idxArg + 1].split(",").map((t) => t.trim());
+const dateArg = args.find((arg) => arg.startsWith("--date="));
+const date = dateArg
+  ? dateArg.split("=")[1]
+  : new Date().toISOString().split("T")[0];
 
-  return [];
-})();
+// Slugify function
+const slugify = (text) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
 
-const id = String(getNextId()).padStart(3, "0");
 const slug = slugify(title);
-const date = new Date().toISOString().split("T")[0];
+
+// Check if slug already exists
+if (posts.find((p) => p.slug === slug)) {
+  console.error(`❌ A post with slug "${slug}" already exists!`);
+  process.exit(1);
+}
+
+// Create new post metadata
+const newPost = {
+  id,
+  title,
+  slug,
+  date,
+  tags,
+};
+
+// Write to posts.json
+posts.push(newPost);
+fs.writeFileSync(POSTS_JSON, JSON.stringify(posts, null, 4), "utf-8");
+
+// Create MDX file
+const filename = `${slug}.mdx`;
+const filePath = path.join(POSTS_DIR, filename);
 
 const frontmatter = `---
 title: "${title}"
@@ -70,7 +88,7 @@ tag: [${tags.map((t) => `"${t}"`).join(", ")}]
 Write your content here...
 `;
 
-const filename = `${slug}.mdx`;
-fs.writeFileSync(path.join(POSTS_DIR, filename), frontmatter, "utf-8");
+fs.writeFileSync(filePath, frontmatter, "utf-8");
 
-console.log(`✅ Created new post: ${filename} with id ${id}`);
+console.log(`✅ Created new post: ${filename} (id: ${id})`);
+console.log(`✅ Updated posts.json`);

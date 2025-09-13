@@ -1,0 +1,296 @@
+[
+    {
+        "id": 1,
+        "title": "graphics.h template",
+        "slug": "graphics-template",
+        "date": "2021-04-03",
+        "tags": [
+            "js",
+            "dom",
+            "react",
+            "hooks",
+            "guide"
+        ],
+        "subtitle": "Basic c++ graphics lib setup template up and running"
+    },
+    {
+        "id": 2,
+        "title": "What is markdown",
+        "slug": "how-to-write-makdown",
+        "date": "2021-04-24",
+        "tags": [
+            "markdown",
+            "basic",
+            "guide"
+        ],
+        "subtitle": "what how and why to know about markdown readme.md content"
+    },
+    {
+        "id": 3,
+        "title": "Sort Visualization using p5.js",
+        "slug": "sorting-p5-visualization",
+        "date": "2021-05-08",
+        "tags": [
+            "js",
+            "p5",
+            "dsa"
+        ],
+        "subtitle": "Bubble sort can be implemented as follows:"
+    },
+    {
+        "id": 4,
+        "title": "6 steps to create a pull request",
+        "slug": "how-to-git-hub-contribution",
+        "date": "2021-09-08",
+        "tags": [
+            "git",
+            "github",
+            "basic",
+            "guide"
+        ],
+        "subtitle": "How to contribute to a project on Github, If you are looking to make your first github contribution..."
+    },
+    {
+        "id": 5,
+        "title": "Setting up graphics.h lib in Visual Studio Code (C++)",
+        "slug": "setup-graphics-lib",
+        "date": "2021-09-08",
+        "tags": [
+            "c++",
+            "lib",
+            "guide"
+        ],
+        "subtitle": "Step-by-Step Guide to Configure graphics.h Library in Visual Studio Code for C++ Development"
+    },
+    {
+        "id": 6,
+        "title": "Basic of React 17",
+        "slug": "basic-of-react17",
+        "date": "2021-09-24",
+        "tags": [
+            "js",
+            "dom",
+            "react",
+            "basic",
+            "guide"
+        ],
+        "subtitle": "Lets learn building large react app by building smaller react components and then composing them together"
+    },
+    {
+        "id": 7,
+        "title": "JavaScript In-Place Array Manipulation",
+        "slug": "remove-from-array",
+        "date": "2023-07-09",
+        "tags": [
+            "js",
+            "array"
+        ],
+        "subtitle": "Remove Duplicate Numbers from Sorted Arrays in JavaScript"
+    },
+    {
+        "id": 8,
+        "title": "Learn Regular Expressions",
+        "slug": "learn-regular-expression",
+        "date": "2023-07-12",
+        "tags": [
+            "regx",
+            "guide"
+        ],
+        "subtitle": "A Comprehensive Guide to Mastering Regular Expressions in JavaScript, including freeCodeCamp and additional content"
+    },
+    {
+        "id": 9,
+        "title": "Essential React Hooks: A Comprehensive Guide",
+        "slug": "basic-of-react-hooks",
+        "date": "2023-07-18",
+        "tags": [
+            "js",
+            "dom",
+            "react",
+            "hooks",
+            "guide"
+        ],
+        "subtitle": "Learn about the most important React hooks and how to use them to enhance your functional components."
+    },
+    {
+        "id": 10,
+        "title": "Comprehensive Guide to Advanced JavaScript Concepts",
+        "slug": "advance-javascript",
+        "date": "2023-08-02",
+        "tags": [
+            "js",
+            "dom",
+            "advance",
+            "stack",
+            "guide"
+        ],
+        "subtitle": "In-Depth Exploration of JavaScript Execution Contexts, Closures, Promises, Async/Await, Object-Oriented Programming, Prototypes, and More"
+    },
+    {
+        "id": 11,
+        "title": "Complete Typescript",
+        "slug": "complete-typescript",
+        "date": "2023-08-24",
+        "tags": [
+            "ts",
+            "dom",
+            "basic",
+            "guide"
+        ],
+        "subtitle": "Learn react 18 with typescript"
+    },
+    {
+        "id": 12,
+        "title": "The Enchanting Guide to JavaScript Exports and Imports",
+        "slug": "named-and-default-exports",
+        "date": "2024-01-29",
+        "tags": [
+            "js",
+            "guide"
+        ],
+        "subtitle": "Unraveling the Secrets of Named and Default Exports with Joy"
+    },
+    {
+        "id": 13,
+        "title": "Using GitHub as a Headless CMS for Blogs with Next.js – and Publishing to dev.to + RSS!",
+        "slug": "github-as-markdown-blog-cms",
+        "date": "2025-05-08",
+        "tags": [
+            "nextjs",
+            "mdx",
+            "rss",
+            "dev.to",
+            "github",
+            "blog",
+            "next-api",
+            "ssr",
+            "seo",
+            "cms"
+        ],
+        "subtitle": "Learn how to build a fast, modern blog using GitHub as a content store, MDX for writing, Next.js for rendering, and RSS feeds to publish automatically to dev.to"
+    },
+    {
+        "id": 14,
+        "title": "Check if a Subarray with Zero Sum Exists – Prefix Sum in Action",
+        "slug": "check-subarray-zero",
+        "date": "2025-06-26",
+        "tags": [
+            "algorithms",
+            "arrays",
+            "prefixsum",
+            "python",
+            "javascript",
+            "dsa",
+            "subarray",
+            "brute-force",
+            "interview"
+        ],
+        "subtitle": "Understand how to check for a zero-sum subarray using both brute-force and prefix sum techniques, with step-by-step code in Python and JavaScript."
+    },
+    {
+        "id": 15,
+        "title": "Find Pair with Given Sum in an Array – Brute-force and Optimal Approaches",
+        "slug": "find-pair",
+        "date": "2025-06-26",
+        "tags": [
+            "algorithms",
+            "arrays",
+            "hashmap",
+            "python",
+            "javascript",
+            "dsa",
+            "brute-force",
+            "optimal",
+            "coding"
+        ],
+        "subtitle": "Explore how to find two elements in an array that sum up to a target value using brute-force and hash map techniques in both Python and JavaScript."
+    },
+    {
+        "id": 16,
+        "title": "Print All Zero-Sum Subarrays – From Brute-Force to Prefix Hashing",
+        "slug": "print-all-zero-sum-subarray",
+        "date": "2025-06-26",
+        "tags": [
+            "algorithms",
+            "arrays",
+            "prefixsum",
+            "python",
+            "dsa",
+            "subarray",
+            "hashmap",
+            "interview"
+        ],
+        "subtitle": "Explore how to find and print all subarrays that sum to zero using both brute-force and efficient prefix-sum + hashmap techniques in Python."
+    },
+    {
+        "id": 17,
+        "title": "Automating My MDX Blog Workflow with a Simple Node.js Script",
+        "slug": "automating-my-mdx-blog-workflow-with-a-simple-node-js-script",
+        "date": "2025-09-04",
+        "tags": [
+            "nodejs",
+            "automation",
+            "mdx",
+            "blogging",
+            "productivity"
+        ],
+        "subtitle": "Streamlining MDX blog posts with a single Node.js command"
+    },
+    {
+        "id": 18,
+        "title": "debouncing-in-js",
+        "slug": "debouncing-in-js",
+        "date": "2025-09-09",
+        "tags": [
+            "JavaScript",
+            "debounce",
+            "throttle",
+            "event handling",
+            "performance optimization",
+            "search input",
+            "scroll events",
+            "requestAnimationFrame",
+            "modern JavaScript"
+        ],
+        "subtitle": "How to improve performance and user experience in your web apps using JavaScript debouncing. This guide explains when, why, and how to use debounce with two interactive examples — a basic typing activity tracker and an advanced API search simulator. See how debouncing reduces unnecessary events and network requests with live demos."
+    },
+    {
+        "id": 19,
+        "title": "Deep dive into Javascript heartbeat: queues, loops & Async",
+        "slug": "understanding-javascript-heartbeat-queues-loops",
+        "date": "2025-09-09",
+        "tags": [
+            "Javascript",
+            "event-loop",
+            "task-queue",
+            "microtasks",
+            "macrotasks",
+            "async",
+            "call-stack",
+            "execution-context",
+            "web-development",
+            "beginner-guide"
+        ],
+        "subtitle": "Learn how Javascript Event Loop, Call Stack, Microtasks, and Macrotasks collaborate to prevent blocking, manage asynchronous tasks, and power seamless interactions on modern web applications."
+    },
+    {
+        "id": 20,
+        "title": "newblog",
+        "slug": "newblog",
+        "date": "2025-09-13",
+        "tags": [
+            "js app"
+        ],
+        "subtitle": ""
+    },
+    {
+        "id": 21,
+        "title": "newblog2",
+        "slug": "newblog2",
+        "date": "2025-09-13",
+        "tags": [
+            "js app"
+        ],
+        "subtitle": ""
+    }
+]
