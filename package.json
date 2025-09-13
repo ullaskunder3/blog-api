@@ -16,5 +16,9 @@
   "type": "module",
   "author": "ullaskunder3",
   "license": "MIT",
-  "packageManager": "pnpm@10.12.4"
+  "packageManager": "pnpm@10.12.4",
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "gray-matter": "^4.0.3"
+  }
 }
