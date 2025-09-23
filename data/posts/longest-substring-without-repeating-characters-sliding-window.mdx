@@ -1,6 +1,6 @@
 ---
 title: "Longest Substring Without Repeating Characters – Sliding Window"
-subtitle: ""
+subtitle: "Learn how to efficiently find the longest substring with unique characters using sliding window and hashmap in Python and JavaScript."
 id: 21
 date: "2025-09-23"
 tag:
@@ -14,6 +14,118 @@ tag:
   - javascript
 ---
 
-# Longest Substring Without Repeating Characters – Sliding Window
+# 🧠 Longest Substring Without Repeating Characters – Sliding Window
 
-Write your content here...
+### ✅ Problem Statement
+
+Given a string `s`, find the **length of the longest substring without repeating characters**.
+
+This problem is about **tracking patterns and maximizing a range** while ensuring all elements in the range are unique.
+
+### 🧩 Example
+
+```text
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The longest substring without repeating characters is "abc", which has length 3.
+```
+
+## 🔍 Approach 1: Brute Force (O(n³))
+
+**What:** Check all possible substrings and see if they contain duplicates.
+**Why:** Simple and straightforward.
+**How:** Generate every substring, then check if all characters are unique.
+
+### 🐍 Python Code
+
+```python
+def length_of_longest_substring_brute(s):
+    max_len = 0
+    n = len(s)
+    for i in range(n):
+        for j in range(i+1, n+1):
+            substring = s[i:j]
+            if len(substring) == len(set(substring)):
+                max_len = max(max_len, j - i)
+    return max_len
+```
+
+**Drawback:** Very slow for long strings. Imagine a 1000-character string → millions of substrings!
+
+## ⚡ Approach 2: Sliding Window + HashMap (O(n))
+
+**What:** Use two pointers (`start` and `end`) to maintain a window of unique characters.
+**Why:** Instead of rechecking everything, **expand the window when possible and shrink when necessary**.
+**How:** Keep a hashmap of characters → index. If a character repeats, move `start` past its previous index.
+
+### 🐍 Python Code
+
+```python
+def length_of_longest_substring(s):
+    char_index = {}
+    max_len = 0
+    start = 0
+
+    for end, char in enumerate(s):
+        if char in char_index and char_index[char] >= start:
+            start = char_index[char] + 1
+        char_index[char] = end
+        max_len = max(max_len, end - start + 1)
+
+    return max_len
+```
+
+### 🧪 JavaScript Stack Trace Example
+
+```javascript
+function lengthOfLongestSubstring(s) {
+  const charIndex = {};
+  let maxLen = 0;
+  let start = 0;
+
+  for (let end = 0; end < s.length; end++) {
+    const char = s[end];
+    if (char in charIndex && charIndex[char] >= start) {
+      start = charIndex[char] + 1;
+    }
+    charIndex[char] = end;
+    maxLen = Math.max(maxLen, end - start + 1);
+  }
+
+  return maxLen;
+}
+
+// Example
+const s = "abcabcbb";
+console.log(lengthOfLongestSubstring(s)); // Output: 3
+```
+
+**Execution Trace / Window Expansion**
+
+```
+s = "abcabcbb"
+start = 0, end = 0, char = 'a', window = 'a', maxLen = 1
+end = 1, char = 'b', window = 'ab', maxLen = 2
+end = 2, char = 'c', window = 'abc', maxLen = 3
+end = 3, char = 'a', repeat found, move start to 1
+window = 'bca', maxLen = 3
+end = 4, char = 'b', repeat found, move start to 2
+window = 'cab', maxLen = 3
+...
+```
+
+## 🔍 Breaking It Down for Understanding
+
+1. **Sliding Window Concept:** Keep a “live” substring, expanding the window until a repeat occurs.
+2. **HashMap Helps:** Track the last seen index of each character to jump the start pointer efficiently.
+3. **Mental Model:** Think of a rope being stretched over unique elements. When a repeat occurs, move the start forward to cut the rope just enough to remove duplicates.
+4. **Pattern Recognition:** This teaches **dynamic range maintenance** — a key skill for arrays and strings.
+
+## 📝 Summary
+
+| Approach       | Time Complexity | Space Complexity | Notes                                        |
+| -------------- | --------------- | ---------------- | -------------------------------------------- |
+| Brute-force    | O(n³)           | O(min(n, a))     | Check all substrings, slow for large strings |
+| Sliding Window | O(n)            | O(min(n, a))     | Efficient, uses hashmap, real-time windowing |
+
+> **Tip:** Whenever you need **subarray or substring with some property**, think **“can I maintain a sliding window?”** It often reduces nested loops into a linear pass.
