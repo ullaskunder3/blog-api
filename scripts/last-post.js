@@ -2,7 +2,7 @@
 import fs from "fs";
 import path from "path";
 
-const POSTS_DIR = process.cwd();
+const POSTS_DIR = path.join(process.cwd(), "data", "posts");
 
 function extractFrontmatter(content) {
   const idMatch = content.match(/id:\s*(\d+)/);

@@ -2,7 +2,7 @@
 import fs from "fs";
 import path from "path";
 
-const POSTS_DIR = process.cwd();
+const POSTS_DIR = path.join(process.cwd(), "data", "posts");
 
 const args = process.argv.slice(2);
 let searchId = null;

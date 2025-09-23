@@ -272,5 +272,36 @@
             "beginner-guide"
         ],
         "subtitle": "Learn how Javascript Event Loop, Call Stack, Microtasks, and Macrotasks collaborate to prevent blocking, manage asynchronous tasks, and power seamless interactions on modern web applications."
+    },
+    {
+        "id": 20,
+        "title": "Two Sum – Brute Force vs Hashing",
+        "slug": "two-sum-brute-force-vs-hashing",
+        "date": "2025-09-23",
+        "tags": [
+            "algorithms",
+            "arrays",
+            "hashmap",
+            "python",
+            "dsa",
+            "interview",
+            "twopointer"
+        ]
+    },
+    {
+        "id": 21,
+        "title": "Longest Substring Without Repeating Characters – Sliding Window",
+        "slug": "longest-substring-without-repeating-characters-sliding-window",
+        "date": "2025-09-23",
+        "tags": [
+            "algorithms",
+            "string",
+            "slidingwindow",
+            "hashmap",
+            "python",
+            "dsa",
+            "interview",
+            "javascript"
+        ]
     }
 ]

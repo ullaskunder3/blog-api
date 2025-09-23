@@ -80,7 +80,8 @@ title: "${title}"
 subtitle: ""
 id: ${id}
 date: "${date}"
-tag: [${tags.map((t) => `"${t}"`).join(", ")}]
+tag:
+${tags.map((t) => `  - ${t}`).join("\n")}
 ---
 
 # ${title}
