@@ -305,5 +305,23 @@
             "javascript"
         ],
         "subtitle": "Learn how to efficiently find the longest substring with unique characters using sliding window and hashmap in Python and JavaScript."
+    },
+    {
+        "id": 22,
+        "title": "How to Reset Your PostgreSQL Password on Windows (2025)",
+        "slug": "how-to-reset-your-postgresql-password-on-windows-2025",
+        "date": "2025-09-24",
+        "tags": [
+            "PostgreSQL",
+            "PostgreSQL Password Reset",
+            "PostgreSQL Windows",
+            "Reset Database Password",
+            "Postgres Security",
+            "Database Administration",
+            "psql Tutorial",
+            "PowerShell PostgreSQL",
+            "PostgreSQL 17"
+        ],
+        "subtitle": "Step-by-step guide to reset your PostgreSQL superuser password on Windows using pg_hba.conf and PowerShell. No reinstall or guesswork required."
     }
 ]
