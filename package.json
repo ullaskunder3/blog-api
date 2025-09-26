@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "new": "node scripts/new-post.js",
+    "new-post": "node scripts/new.js",
+    "create-new-post": "node scripts/create.js",
     "last": "node scripts/last-post.js",
     "post": "node scripts/info-post.js"
   },
@@ -19,6 +21,8 @@
   "packageManager": "pnpm@10.12.4",
   "dependencies": {
     "date-fns": "^4.1.0",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "inquirer": "^12.9.6",
+    "readline-sync": "^1.4.10"
   }
 }
