@@ -1,0 +1,131 @@
+---
+title: "solve leetcode Reverse an Array"
+subtitle: "Learn how to reverse an array efficiently using brute force and optimal approaches in Python and JavaScript."
+id: 23
+date: "2025-10-01"
+tag:
+  - algorithms
+  - javascript
+  - dsa
+  - interview
+  - blog
+---
+
+# 🧠 Solve LeetCode: Reverse an Array
+
+### ✅ Problem Statement
+
+Given an array `arr`, **reverse its elements in-place** or return a new reversed array.
+
+This is a fundamental problem to understand **array manipulation, two-pointer techniques, and space optimization**.
+
+### 🧩 Example
+
+```text
+Input: arr = [1, 2, 3, 4, 5]
+Output: [5, 4, 3, 2, 1]
+```
+
+## 🔍 Approach 1: Brute Force (O(n) time, O(n) space)
+
+**What:** Create a new array and copy elements in reverse order.
+**Why:** Simple, intuitive, but uses extra space.
+**How:** Start from the last element of the original array and append it to a new array.
+
+### 🐍 Python Code
+
+```python
+def reverse_array_brute(arr):
+    reversed_arr = []
+    for i in range(len(arr)-1, -1, -1):
+        reversed_arr.append(arr[i])
+    return reversed_arr
+
+# Example
+arr = [1, 2, 3, 4, 5]
+print(reverse_array_brute(arr))  # Output: [5, 4, 3, 2, 1]
+```
+
+### 🧪 JavaScript Code
+
+```javascript
+function reverseArrayBrute(arr) {
+  const reversed = [];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    reversed.push(arr[i]);
+  }
+  return reversed;
+}
+
+// Example
+const arr = [1, 2, 3, 4, 5];
+console.log(reverseArrayBrute(arr)); // Output: [5, 4, 3, 2, 1]
+```
+
+**Drawback:** Uses **extra O(n) space**, not ideal for large arrays.
+
+## ⚡ Approach 2: Two-Pointer In-Place (O(n) time, O(1) space)
+
+**What:** Swap elements from start and end moving towards the middle.
+**Why:** Reverses the array **in-place**, no extra space needed.
+**How:** Use two pointers: `left` at start, `right` at end. Swap until `left >= right`.
+
+### 🐍 Python Code
+
+```python
+def reverse_array_inplace(arr):
+    left, right = 0, len(arr) - 1
+    while left < right:
+        arr[left], arr[right] = arr[right], arr[left]
+        left += 1
+        right -= 1
+    return arr
+
+# Example
+arr = [1, 2, 3, 4, 5]
+print(reverse_array_inplace(arr))  # Output: [5, 4, 3, 2, 1]
+```
+
+### 🧪 JavaScript Code
+
+```javascript
+function reverseArrayInPlace(arr) {
+  let left = 0,
+    right = arr.length - 1;
+  while (left < right) {
+    [arr[left], arr[right]] = [arr[right], arr[left]];
+    left++;
+    right--;
+  }
+  return arr;
+}
+
+// Example
+const arr = [1, 2, 3, 4, 5];
+console.log(reverseArrayInPlace(arr)); // Output: [5, 4, 3, 2, 1]
+```
+
+**Execution Trace / Step-by-Step**
+
+```
+arr = [1, 2, 3, 4, 5]
+left=0, right=4 → swap arr[0] & arr[4] → [5,2,3,4,1]
+left=1, right=3 → swap arr[1] & arr[3] → [5,4,3,2,1]
+left=2, right=2 → stop, middle reached
+```
+
+## 🔍 Breaking It Down for Understanding
+
+1. **Two-Pointer Concept:** Maintain `left` and `right` to perform swaps efficiently.
+2. **In-Place Advantage:** Saves space, important for memory-sensitive problems.
+3. **Mental Model:** Imagine folding the array from both ends until you meet in the middle.
+4. **Pattern Recognition:** Many array problems use **two-pointer or in-place swapping techniques**.
+
+## 📝 Summary
+
+| Approach    | Time Complexity | Space Complexity | Notes                               |
+| ----------- | --------------- | ---------------- | ----------------------------------- |
+| Brute-force | O(n)            | O(n)             | Easy to implement, uses extra space |
+| Two-pointer | O(n)            | O(1)             | In-place, memory-efficient, optimal |
+
+> **Tip:** Whenever you need **to reverse or rearrange arrays**, think about **two-pointer swaps** before creating new arrays. It’s usually more optimal.

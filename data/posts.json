@@ -323,5 +323,19 @@
             "PostgreSQL 17"
         ],
         "subtitle": "Step-by-step guide to reset your PostgreSQL superuser password on Windows using pg_hba.conf and PowerShell. No reinstall or guesswork required."
+    },
+    {
+        "id": 23,
+        "title": "solve leetcode Reverse an Array",
+        "slug": "solve-leetcode-reverse-an-array",
+        "date": "2025-10-01",
+        "tags": [
+            "algorithms",
+            "javascript",
+            "dsa",
+            "interview",
+            "blog"
+        ],
+        "subtitle": "Learn how to reverse an array efficiently using brute force and optimal approaches in Python and JavaScript."
     }
 ]
