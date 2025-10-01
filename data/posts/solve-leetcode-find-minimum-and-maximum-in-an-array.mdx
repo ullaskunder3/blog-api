@@ -1,0 +1,98 @@
+---
+title: "solve leetcode find minimum and maximum in an array"
+subtitle: "Learn how to efficiently find the smallest and largest elements in an array using simple and optimal techniques in Python and JavaScript."
+id: 24
+date: "2025-10-01"
+tag:
+  - algorithms
+  - javascript
+  - dsa
+  - interview
+  - blog
+---
+
+# 🧠 Find Minimum and Maximum in an Array
+
+### ✅ Problem Statement
+
+Given an array `arr`, **find the minimum and maximum elements**.
+
+This is a fundamental problem to understand **array traversal, comparisons, and optimization techniques**.
+
+### 🧩 Example
+
+```text
+Input: arr = [3, 7, 1, 9, 2]
+Output: Min = 1, Max = 9
+```
+
+## 🔍 Approach 1: Brute Force (O(n) time, O(1) space)
+
+**What:** Traverse the array once, updating min and max values sequentially.
+**Why:** Simple and intuitive.
+**How:** Initialize `min_val` and `max_val` with the first element, then check each element in the array.
+
+### 🐍 Python Code
+
+```python
+def find_min_max(arr):
+    if not arr:
+        return None, None
+
+    min_val = max_val = arr[0]
+    for num in arr:
+        if num < min_val:
+            min_val = num
+        if num > max_val:
+            max_val = num
+    return min_val, max_val
+
+# Example
+arr = [3, 7, 1, 9, 2]
+print(find_min_max(arr))  # Output: (1, 9)
+```
+
+### 🧪 JavaScript Code
+
+```javascript
+function findMinMax(arr) {
+  let min = arr[0],
+    max = arr[0];
+  for (let num of arr) {
+    if (num < min) min = num;
+    if (num > max) max = num;
+  }
+  return { min, max };
+}
+
+// Example
+const arr = [3, 7, 1, 9, 2];
+console.log(findMinMax(arr)); // Output: { min: 1, max: 9 }
+```
+
+**Execution Trace / Step-by-Step**
+
+```
+arr = [3, 7, 1, 9, 2]
+Step 1: min=3, max=3
+Step 2: num=7 → max=7
+Step 3: num=1 → min=1
+Step 4: num=9 → max=9
+Step 5: num=2 → no change
+Final → min=1, max=9
+```
+
+## 🔍 Breaking It Down for Understanding
+
+1. **Single Pass Traversal:** Check each element once → O(n) time.
+2. **Space Efficient:** Only two variables used → O(1) space.
+3. **Mental Model:** Imagine holding a “current min” and “current max” while walking through the array — update when a new extreme is found.
+4. **Pattern Recognition:** Many array problems involve **tracking extremes, counts, or sums**, and this pattern is reusable.
+
+## 📝 Summary
+
+| Approach    | Time Complexity | Space Complexity | Notes                             |
+| ----------- | --------------- | ---------------- | --------------------------------- |
+| Single Pass | O(n)            | O(1)             | Simple, clear, efficient, optimal |
+
+> **Tip:** Whenever you need **minimum, maximum, or running stats** in an array, a single-pass comparison is usually the most elegant solution.
