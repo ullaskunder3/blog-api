@@ -351,5 +351,19 @@
             "blog"
         ],
         "subtitle": "Learn how to efficiently find the smallest and largest elements in an array using simple and optimal techniques in Python and JavaScript."
+    },
+    {
+        "id": 25,
+        "title": "solve leetcode Rotate an array to the right by k steps",
+        "slug": "solve-leetcode-rotate-an-array-to-the-right-by-k-steps",
+        "date": "2025-10-01",
+        "tags": [
+            "algorithms",
+            "javascript",
+            "dsa",
+            "interview",
+            "blog"
+        ],
+        "subtitle": "Learn how to rotate an array efficiently using the reverse approach in Python and JavaScript with step-by-step explanation."
     }
 ]

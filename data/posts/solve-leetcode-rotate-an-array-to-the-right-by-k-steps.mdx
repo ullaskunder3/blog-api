@@ -1,0 +1,143 @@
+---
+title: "solve leetcode Rotate an array to the right by k steps"
+subtitle: "Learn how to rotate an array efficiently using the reverse approach in Python and JavaScript with step-by-step explanation."
+id: 25
+date: "2025-10-01"
+tag:
+  - algorithms
+  - javascript
+  - dsa
+  - interview
+  - blog
+---
+
+# 🧠 Rotate an Array to the Right by k Steps
+
+### ✅ Problem Statement
+
+Given an array `arr` and an integer `k`, **rotate the array to the right by k steps**.
+
+**Rotation example:**
+
+```text
+Input: arr = [1, 2, 3, 4, 5], k = 2
+Output: [4, 5, 1, 2, 3]
+```
+
+This problem helps understand **in-place array manipulation, reverse techniques, and modular arithmetic**.
+
+## 🔍 Approach: Reverse Method (Optimal, O(n) time, O(1) space)
+
+**What:** Use the **reverse trick**:
+
+1. Reverse the whole array.
+2. Reverse the first `k` elements.
+3. Reverse the remaining `n-k` elements.
+
+**Why:** Efficient in-place solution, no extra array needed.
+**How:** Reversing rearranges elements systematically to achieve rotation.
+
+### 🐍 Python Code
+
+```python
+def rotate_right(arr, k):
+    n = len(arr)
+    k %= n
+
+    def reverse(start, end):
+        while start < end:
+            arr[start], arr[end] = arr[end], arr[start]
+            start += 1
+            end -= 1
+
+    # Step 1: Reverse the whole array
+    reverse(0, n-1)
+
+    # Step 2: Reverse first k elements
+    reverse(0, k-1)
+
+    # Step 3: Reverse remaining elements
+    reverse(k, n-1)
+
+    return arr
+
+# Example
+arr = [1, 2, 3, 4, 5]
+print(rotate_right(arr, 2))  # Output: [4, 5, 1, 2, 3]
+```
+
+### 🧪 JavaScript Code
+
+```javascript
+function rotateRight(arr, k) {
+  k %= arr.length;
+
+  const reverse = (start, end) => {
+    while (start < end) {
+      [arr[start], arr[end]] = [arr[end], arr[start]];
+      start++;
+      end--;
+    }
+  };
+
+  // Step 1: Reverse the whole array
+  reverse(0, arr.length - 1);
+
+  // Step 2: Reverse first k elements
+  reverse(0, k - 1);
+
+  // Step 3: Reverse remaining elements
+  reverse(k, arr.length - 1);
+
+  return arr;
+}
+
+// Example
+console.log(rotateRight([1, 2, 3, 4, 5], 2)); // Output: [4, 5, 1, 2, 3]
+```
+
+## 🔄 Execution Trace / Step-by-Step Example
+
+Let’s rotate `[1, 2, 3, 4, 5]` by `k = 2`:
+
+1. **Step 0: Original array**
+
+```
+[1, 2, 3, 4, 5]
+```
+
+2. **Step 1: Reverse the whole array**
+
+```
+reverse(0, 4) → [5, 4, 3, 2, 1]
+```
+
+3. **Step 2: Reverse first k elements (0 to k-1)**
+
+```
+reverse(0, 1) → [4, 5, 3, 2, 1]
+```
+
+4. **Step 3: Reverse remaining elements (k to n-1)**
+
+```
+reverse(2, 4) → [4, 5, 1, 2, 3]
+```
+
+✅ **Final rotated array:** `[4, 5, 1, 2, 3]`
+
+## 🔍 Breaking It Down for Understanding
+
+1. **Reverse Concept:** Reversing rearranges elements in the opposite order.
+2. **Three-Step Trick:** Reverse full → reverse first k → reverse rest → achieves rotation.
+3. **Modular Arithmetic:** `k %= n` handles cases when `k > n`.
+4. **In-Place Advantage:** No extra space needed → O(1) space.
+5. **Pattern Recognition:** Useful for **rotations, cyclic shifts, and array transformations**.
+
+## 📝 Summary
+
+| Approach       | Time Complexity | Space Complexity | Notes                                  |
+| -------------- | --------------- | ---------------- | -------------------------------------- |
+| Reverse Method | O(n)            | O(1)             | Optimal, in-place, uses three reverses |
+
+> **Tip:** Whenever you need to **rotate arrays efficiently**, think of **reversing segments** — it often avoids extra arrays and keeps the solution clean.
