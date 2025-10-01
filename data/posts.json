@@ -337,5 +337,19 @@
             "blog"
         ],
         "subtitle": "Learn how to reverse an array efficiently using brute force and optimal approaches in Python and JavaScript."
+    },
+    {
+        "id": 24,
+        "title": "solve leetcode find minimum and maximum in an array",
+        "slug": "solve-leetcode-find-minimum-and-maximum-in-an-array",
+        "date": "2025-10-01",
+        "tags": [
+            "algorithms",
+            "javascript",
+            "dsa",
+            "interview",
+            "blog"
+        ],
+        "subtitle": "Learn how to efficiently find the smallest and largest elements in an array using simple and optimal techniques in Python and JavaScript."
     }
 ]
