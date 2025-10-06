@@ -6,13 +6,13 @@ const POSTS_DIR = path.join(process.cwd(), "data", "posts");
 
 function extractFrontmatter(content) {
   const idMatch = content.match(/id:\s*(\d+)/);
-  const titleMatch = content.match(/title:\s*"(.*?)"/);
-  const dateMatch = content.match(/date:\s*"(.*?)"/);
+  const titleMatch = content.match(/title:\s*["']?(.*?)["']?$/m);
+  const dateMatch = content.match(/date:\s*["']?(.*?)["']?$/m);
 
   return {
     id: idMatch ? parseInt(idMatch[1], 10) : null,
-    title: titleMatch ? titleMatch[1] : "Untitled",
-    date: dateMatch ? dateMatch[1] : "Unknown",
+    title: titleMatch ? titleMatch[1].trim() : "Untitled",
+    date: dateMatch ? dateMatch[1].trim() : "Unknown",
   };
 }
 
