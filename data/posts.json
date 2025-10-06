@@ -322,7 +322,7 @@
             "PowerShell PostgreSQL",
             "PostgreSQL 17"
         ],
-        "subtitle": "Step-by-step guide to reset your PostgreSQL superuser password on Windows using pg_hba.conf and PowerShell. No reinstall or guesswork required."
+        "subtitle": "Learn how to reset your PostgreSQL password on Windows 10 & 11 without reinstalling. Step-by-step guide for PostgreSQL 17 users (2025)."
     },
     {
         "id": 23,
