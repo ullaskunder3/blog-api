@@ -9,7 +9,7 @@ This project automates the creation and management of your DSA blog posts.
 - **Create new post**
 
 ```sh
-pnpm new "Post Title" --tags=algorithms,python,dsa,interview
+pnpm new "Post Title" --tags="algorithms,python,dsa,interview"
 ```
 
 Generates a new `.mdx` file in `data/posts/` and updates `posts.json` with metadata.
@@ -36,7 +36,7 @@ Shows metadata and file path for a post by its `id`.
 
 - **Slug** is automatically generated from the title.
 - **Date** defaults to today if not provided. Use `--date=YYYY-MM-DD` to override.
-- **Tags** are optional but recommended for categorization. Example: `--tags=python,dsa,arrays`.
+- **Tags** are optional but recommended for categorization. Example: `--tags="python,dsa,arrays"`.
 - **ID** increments automatically; do not edit manually.
 
 > Recommended workflow:
