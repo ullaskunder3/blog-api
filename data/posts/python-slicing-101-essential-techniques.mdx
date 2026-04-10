@@ -1,0 +1,376 @@
+---
+title: Python Slicing 101 Essential Techniques
+subtitle: "From Basic Indexing to Advanced Patterns—Master the Most Elegant Feature of Python"
+id: 26
+date: "2026-04-10"
+tag:
+  - python
+  - slicing
+  - lists
+  - strings
+  - guide
+prev: solve-leetcode-rotate-an-array-to-the-right-by-k-steps
+next: graphics-template
+---
+
+# Mastering Python Slicing & Negative Indexing: A Complete Guide
+
+## Introduction
+
+Python's slicing and negative indexing are among the most powerful yet misunderstood features of the language. Once you master these concepts, you'll write cleaner, more Pythonic code and solve problems with elegance. Let's dive in!
+
+Whether you're working with lists, strings, or tuples, slicing gives you surgical precision to extract exactly what you need. And negative indexing? It's a game-changer for accessing elements from the end of your sequences.
+
+## Part 1: Understanding Basic Indexing
+
+### Positive Indexing (Left to Right)
+
+In Python, indexing starts at **0** from the left:
+
+```python
+letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+
+letters[0]   # 'A' (first)
+letters[1]   # 'B'
+letters[4]   # 'E' (middle)
+letters[9]   # 'J' (last)
+```
+
+Simple enough, right? But what if you need the last element without knowing the list length?
+
+### Negative Indexing (Right to Left)
+
+This is where Python shines. **Negative indexing starts at -1 from the right:**
+
+```python
+letters[-1]   # 'J' (last)
+letters[-2]   # 'I' (second to last)
+letters[-5]   # 'F' (middle from right)
+letters[-10]  # 'A' (first)
+```
+
+**Visual mapping:**
+
+```
+Index:    0   1   2   3   4   5   6   7   8   9
+Value:   A   B   C   D   E   F   G   H   I   J
+Neg:    -10  -9  -8  -7  -6  -5  -4  -3  -2  -1
+```
+
+### The Beauty of Negative Indexing
+
+No more calculating `len(list) - 1` to get the last element. Just use `list[-1]`. This is especially powerful when you don't know the list's length at runtime.
+
+```python
+# Without negative indexing:
+last_item = my_list[len(my_list) - 1]
+
+# With negative indexing (much cleaner):
+last_item = my_list[-1]
+```
+
+## Part 2: Basic Slicing `[start:stop]`
+
+Slicing extracts a **contiguous portion** of a sequence. The syntax is `[start:stop:step]`, but let's start simple.
+
+### The Golden Rule
+
+**`[start:stop]` includes START but EXCLUDES STOP** — it's like a half-open interval [start, stop).
+
+```python
+letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+
+letters[0:3]    # ['A', 'B', 'C']      (includes 0, 1, 2, NOT 3)
+letters[2:5]    # ['C', 'D', 'E']      (includes 2, 3, 4, NOT 5)
+letters[5:10]   # ['F', 'G', 'H', 'I', 'J']
+letters[7:10]   # ['H', 'I', 'J']
+```
+
+### Using Defaults
+
+You can omit `start` or `stop` to use defaults:
+
+```python
+letters[:3]     # ['A', 'B', 'C']        (from beginning to index 3)
+letters[5:]     # ['F', 'G', 'H', 'I', 'J']  (from index 5 to end)
+letters[:]      # ['A', 'B', 'C', ...]   (entire list — creates a copy!)
+```
+
+### Empty Slices
+
+Slicing doesn't raise errors for out-of-bounds indices:
+
+```python
+letters[3:3]    # []        (same start and stop = empty)
+letters[10:20]  # []        (beyond length = empty)
+```
+
+## Part 3: Slicing with Negative Indices
+
+The real power emerges when you combine slicing with negative indices:
+
+```python
+letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+
+letters[-3:]    # ['H', 'I', 'J']       (last 3 items)
+letters[:-3]    # ['A', 'B', 'C', 'D', 'E', 'F', 'G']  (all except last 3)
+letters[-8:-2]  # ['C', 'D', 'E', 'F', 'G', 'H']  (from -8 to -2, NOT including -2)
+letters[-5:-1]  # ['F', 'G', 'H', 'I']   (4 items before the last)
+```
+
+### Mixing Positive and Negative
+
+You can mix positive and negative indices in a single slice:
+
+```python
+letters[2:-2]   # ['C', 'D', 'E', 'F', 'G', 'H']  (skip first 2 AND last 2)
+letters[-6:4]   # ['E', 'F', 'G']                 (from -6 to index 4)
+```
+
+This is incredibly useful for removing a specific number of elements from both ends of a list.
+
+## Part 4: The Step Parameter `[start:stop:step]`
+
+The **step** parameter controls the stride or skip distance. The default is 1 (every item).
+
+### Positive Step
+
+```python
+letters[::2]    # ['A', 'C', 'E', 'G', 'I']         (every 2nd item)
+letters[::3]    # ['A', 'D', 'G', 'J']              (every 3rd item)
+letters[1::2]   # ['B', 'D', 'F', 'H', 'J']         (start at 1, every 2nd)
+letters[0:8:2]  # ['A', 'C', 'E', 'G']              (from 0 to 8, every 2nd)
+```
+
+### Negative Step (Reversing)
+
+Here's where things get fun. A **negative step reverses** the direction:
+
+```python
+letters[::-1]   # ['J', 'I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']  (reversed!)
+letters[::-2]   # ['J', 'H', 'F', 'D', 'B']  (reversed, every 2nd)
+letters[9::-1]  # ['J', 'I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']  (from 9 to start, reversed)
+letters[8:2:-1] # ['I', 'H', 'G', 'F', 'E']  (from 8 to 2, NOT including 2, reversed)
+```
+
+### ⚠️ Critical Rule with Negative Step
+
+**When step is negative, START must be >= STOP** (going right to left):
+
+```python
+letters[9:2:-1] # ['J', 'I', 'H', 'G', 'F']  (from 9 down to 2, not including 2)
+letters[9::-1]  # ['J', 'I', 'H', 'G', ..., 'A']  (from 9 to beginning)
+letters[::-1]   # Entire list reversed (empty defaults mean endpoints)
+```
+
+## Part 5: Practical Patterns You'll Use Every Day
+
+### 1. Get First N Items
+
+```python
+letters[:3]     # ['A', 'B', 'C']
+```
+
+### 2. Get Last N Items
+
+```python
+letters[-3:]    # ['H', 'I', 'J']
+```
+
+### 3. Skip First and Last Items
+
+```python
+letters[1:-1]   # ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+```
+
+### 4. Every Other Item
+
+```python
+letters[::2]    # ['A', 'C', 'E', 'G', 'I']
+```
+
+### 5. Reverse a List
+
+```python
+letters[::-1]   # ['J', 'I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']
+```
+
+### 6. Reverse Every 2nd Item
+
+```python
+letters[::-2]   # ['J', 'H', 'F', 'D', 'B']
+```
+
+### 7. Extract Middle Section
+
+```python
+middle_start = len(letters) // 2 - 2
+middle_end = len(letters) // 2 + 2
+letters[middle_start:middle_end]  # ['D', 'E', 'F', 'G']
+```
+
+### 8. Combine First and Last (Without Middle)
+
+```python
+letters[:3] + letters[-3:]  # ['A', 'B', 'C', 'H', 'I', 'J']
+```
+
+## Part 6: Slicing Works on Strings Too
+
+All these rules apply to strings as well:
+
+```python
+text = "PYTHON"
+
+text[0]      # 'P' (first char)
+text[-1]     # 'N' (last char)
+text[1:4]    # 'YT' (NOT including 4)
+text[::-1]   # 'NOHTYP' (reversed)
+text[::2]    # 'PTO' (every 2nd char)
+```
+
+Strings are immutable, so you can't modify them in place, but slicing works identically.
+
+## Part 7: Common Mistakes & How to Fix Them
+
+### ❌ Mistake 1: Forgetting STOP is Exclusive
+
+```python
+# WRONG: Thinking [0:3] includes index 3
+letters[0:3]  # ['A', 'B', 'C']  ← index 3 is NOT included
+```
+
+**Remember:** The stop index is excluded. This is intentional and makes slicing very intuitive.
+
+### ❌ Mistake 2: Negative Indices Are Backwards
+
+```python
+# WRONG: Thinking letters[-1] is "before the list"
+letters[-1]   # 'J'  ← this is the LAST item, not "before" anything
+```
+
+**Mental model:** Think of negative indices as counting from -1 at the right end.
+
+### ❌ Mistake 3: Positive Step Can't Go Backwards
+
+```python
+# WRONG: Trying to go backwards with positive step
+letters[5:2:1]   # []  ← EMPTY! start > stop with step=1
+
+# CORRECT: Use negative step
+letters[5:2:-1]  # ['F', 'E', 'D']
+```
+
+**Rule:** With positive step, start must be < stop. With negative step, start must be > stop.
+
+### ❌ Mistake 4: Out-of-Bounds Slices
+
+```python
+# WRONG: Thinking this raises an error
+letters[100:200]   # []  ← Just an empty list, no error!
+```
+
+**Takeaway:** Python is forgiving with slice indices. Out-of-bounds slices return empty sequences.
+
+## Part 8: Quick Reference Table
+
+| Expression       | Description          | Example Result              |
+| ---------------- | -------------------- | --------------------------- |
+| `letters[0]`     | First item           | `'A'`                       |
+| `letters[-1]`    | Last item            | `'J'`                       |
+| `letters[:3]`    | First 3 items        | `['A', 'B', 'C']`           |
+| `letters[-3:]`   | Last 3 items         | `['H', 'I', 'J']`           |
+| `letters[1:-1]`  | Skip first & last    | `['B', 'C', ..., 'I']`      |
+| `letters[::2]`   | Every other item     | `['A', 'C', 'E', ...]`      |
+| `letters[::-1]`  | Reversed             | `['J', 'I', 'H', ...]`      |
+| `letters[::-2]`  | Reversed, every 2nd  | `['J', 'H', 'F', ...]`      |
+| `letters[2:7]`   | Index 2 to 7 (not 7) | `['C', 'D', 'E', 'F', 'G']` |
+| `letters[-5:-2]` | From -5 to -2        | `['F', 'G', 'H']`           |
+
+## Part 9: Challenge Yourself!
+
+Try these challenges with `nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]`:
+
+### Challenge 1: Get `[5, 6, 7, 8, 9]`
+
+<details>
+<summary>Answer</summary>
+
+```python
+nums[5:]  # ['A', 'B', 'C', ..., 'J']
+```
+
+</details>
+
+### Challenge 2: Get `[0, 2, 4, 6, 8]`
+
+<details>
+<summary>Answer</summary>
+
+```python
+nums[::2]  # Every other starting from 0
+```
+
+</details>
+
+### Challenge 3: Get `[9, 8, 7, 6, 5]`
+
+<details>
+<summary>Answer</summary>
+
+```python
+nums[9:4:-1]  # From 9 backwards to 5 (4 not included)
+```
+
+</details>
+
+### Challenge 4: Get `[2, 3, 4, 5, 6, 7]`
+
+<details>
+<summary>Answer</summary>
+
+```python
+nums[2:8]  # From index 2 to 8 (8 not included)
+```
+
+</details>
+
+### Challenge 5: Get `[9, 7, 5, 3, 1]`
+
+<details>
+<summary>Answer</summary>
+
+```python
+nums[9::-2]  # From 9 backwards, every 2nd
+# OR
+nums[::-2]   # Reverse everything, every 2nd
+```
+
+</details>
+
+### Challenge 6: Get `[1, 3, 5, 7, 9]`
+
+<details>
+<summary>Answer</summary>
+
+```python
+nums[1::2]  # Start at 1, every 2nd
+```
+
+</details>
+
+## Final Thoughts
+
+Python's slicing and negative indexing might seem complex at first, but they follow **consistent, logical rules**:
+
+1. **Indexing starts at 0** from the left, and **-1** from the right
+2. **Slices include start, exclude stop** — always [start, stop)
+3. **Negative indices are just counting from the right** — think of -1 as the last position
+4. **Step controls direction and stride** — positive moves right, negative moves left
+5. **Out-of-bounds is safe** — you get an empty sequence, not an error
+
+Once these rules become muscle memory, you'll write Python code that's not just correct, but **elegant and efficient**. You'll solve problems with one-liners that others need loops for.
+
+Happy slicing! 🐍
+
+---

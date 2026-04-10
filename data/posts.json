@@ -368,38 +368,15 @@
     },
     {
         "id": 26,
-        "title": "Post Title 3",
-        "slug": "post-title-3",
+        "title": "Python Slicing 101 Essential Techniques",
+        "slug": "python-slicing-101-essential-techniques",
         "date": "2026-04-10",
         "tags": [
-            "algorithms",
             "python",
-            "dsa",
-            "interview"
-        ]
-    },
-    {
-        "id": 27,
-        "title": "Post Title 2",
-        "slug": "post-title-2",
-        "date": "2026-04-10",
-        "tags": [
-            "algorithms",
-            "python",
-            "dsa",
-            "interview"
-        ]
-    },
-    {
-        "id": 28,
-        "title": "Post Title 1",
-        "slug": "post-title-1",
-        "date": "2026-04-10",
-        "tags": [
-            "algorithms",
-            "python",
-            "dsa",
-            "interview"
+            "slicing",
+            "lists",
+            "strings",
+            "guide"
         ]
     }
 ]
