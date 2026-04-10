@@ -112,9 +112,8 @@ posts.forEach((post, index) => {
   fmData.next = next;
 
   const updatedYaml = yaml.dump(fmData, { lineWidth: -1 }).trim();
-  const updatedContent = `---\n${updatedYaml}\n---\n${content
-    .slice(fmMatch[0].length)
-    .trimStart()}\n`;
+  const bodyContent = content.slice(fmMatch[0].length).trim();
+  const updatedContent = `---\n${updatedYaml}\n---\n\n${bodyContent}\n`;
 
   fs.writeFileSync(mdxPath, updatedContent, "utf8");
   console.log(`🔗 Updated navigation for: ${post.slug}.mdx`);
