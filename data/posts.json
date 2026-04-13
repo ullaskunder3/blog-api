@@ -388,7 +388,11 @@
         "tags": [
             "go",
             "wails",
-            "system-tray"
-        ]
+            "system-tray",
+            "desktop-app",
+            "background-task",
+            "goroutines"
+        ],
+        "subtitle": "Keep your background apps running smoothly by combining Wails and Systray without blocking the main OS thread"
     }
 ]

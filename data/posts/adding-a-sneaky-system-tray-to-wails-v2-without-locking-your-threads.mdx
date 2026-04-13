@@ -1,27 +1,30 @@
 ---
 title: Adding a sneaky system tray to Wails v2 without locking your threads
-subtitle: ''
+subtitle: 'Keep your background apps running smoothly by combining Wails and Systray without blocking the main OS thread'
 id: 27
 date: '2026-04-13'
 tag:
   - go
   - wails
   - system-tray
+  - desktop-app
+  - background-task
+  - goroutines
 prev: python-slicing-101-essential-techniques
 next: graphics-template
 ---
 
-# Adding a sneaky system tray to Wails v2 (without locking your threads)
+# Adding a sneaky system tray to Wails v2 (without locking your threads) 🚀
 
-If you're building a background utility in Wails v2—like a status monitor or a notification widget—you're going to quickly hit a wall. Wails v2 doesn't ship with native system tray support. If the user hits the "X" button, your app just terminates.
+If you are building a background utility in Wails v2, like a status monitor or a notification widget, you will likely hit a wall pretty fast. Wails v2 doesn't ship with native system tray support out of the box. So, if the user hits the "X" button, your app just terminates. 😅
 
-You usually want apps like this to minimize to the system tray instead. While Wails v3 promises this out of the box, you don't actually have to wait. You can glue together a robust Windows-safe tray experience right now.
+Usually, you'd want apps like this to gracefully minimize to the system tray instead. While Wails v3 is explicitly promising to fix this natively (you can check out their [v3 systray reference](https://v3alpha.wails.io/features/menus/systray/)), you don't actually need to wait around for it. You can build a robust, Windows-safe system tray experience right now. ✨
 
-Here is how I approached it in a recent project. 
+Here is how I tackled it in a recent project. 
 
 > *Note: I actually learned this today while working on one of my projects:* [dadclass](https://github.com/ullaskunder3/dadclass). *My aim was to run the app in the background and hide it from the taskbar, unlike traditional desktop apps.*
 
-## The Problem: Thread Wars
+## The Problem: Thread Wars ⚔️
 
 The first impulse is usually to grab the popular `github.com/getlantern/systray` package. The issue? Both Wails and the Systray library demand to run on the main OS thread.
 
@@ -55,7 +58,7 @@ wails.Run(&options.App{ ... })
 
 Because it's isolated in its own routine, the tray happily listens for right-clicks in the background without fighting Wails for UI control. When a user clicks "Show App", you simply tap into Wails' runtime package to pull the window back into view.
 
-## Faking the "Minimize to Tray" on close
+## Faking the "Minimize to Tray" on close 🎭
 
 To make it feel like a true background widget, we need to stop the app from exiting when the user clicks the standard window close 'X'.
 
@@ -73,7 +76,7 @@ OnBeforeClose: func(ctx context.Context) (prevent bool) {
 
 Returning `true` cancels the destruction of your app frontend. The window disappears, but your Go backend remains completely untouched and active in the background.
 
-## Triggering it from the Frontend
+## Triggering it from the Frontend 🖱️
 
 Having the "X" button minimize your app is standard, but what if you have a custom title bar or a specific "minimize to tray" button physically inside your HTML/Svelte layout?
 
