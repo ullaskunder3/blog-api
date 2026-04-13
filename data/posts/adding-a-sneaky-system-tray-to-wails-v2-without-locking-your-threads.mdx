@@ -1,0 +1,104 @@
+---
+title: Adding a sneaky system tray to Wails v2 without locking your threads
+subtitle: ''
+id: 27
+date: '2026-04-13'
+tag:
+  - go
+  - wails
+  - system-tray
+prev: python-slicing-101-essential-techniques
+next: graphics-template
+---
+
+# Adding a sneaky system tray to Wails v2 (without locking your threads)
+
+If you're building a background utility in Wails v2—like a status monitor or a notification widget—you're going to quickly hit a wall. Wails v2 doesn't ship with native system tray support. If the user hits the "X" button, your app just terminates.
+
+You usually want apps like this to minimize to the system tray instead. While Wails v3 promises this out of the box, you don't actually have to wait. You can glue together a robust Windows-safe tray experience right now.
+
+Here is how I approached it in a recent project. 
+
+> *Note: I actually learned this today while working on one of my projects:* [dadclass](https://github.com/ullaskunder3/dadclass). *My aim was to run the app in the background and hide it from the taskbar, unlike traditional desktop apps.*
+
+## The Problem: Thread Wars
+
+The first impulse is usually to grab the popular `github.com/getlantern/systray` package. The issue? Both Wails and the Systray library demand to run on the main OS thread.
+
+If you try to run both sequentially, your app just freezes on startup.
+
+The workaround (at least on Windows) is pretty straightforward: you just throw the tray into a background goroutine right before booting Wails.
+
+```go
+// Inside your main() function:
+go systray.Run(func() {
+    systray.SetIcon(trayIcon) // Use //go:embed for your .ico!
+    
+    showBtn := systray.AddMenuItem("Show App", "")
+    quitBtn := systray.AddMenuItem("Quit", "")
+    for {
+        select {
+        case <-showBtn.ClickedCh:
+            if app.ctx != nil {
+                runtime.WindowShow(app.ctx) 
+            }
+        case <-quitBtn.ClickedCh:
+            systray.Quit()
+            os.Exit(0)
+        }
+    }
+}, func() {})
+
+// Followed by your normal Wails setup:
+wails.Run(&options.App{ ... })
+```
+
+Because it's isolated in its own routine, the tray happily listens for right-clicks in the background without fighting Wails for UI control. When a user clicks "Show App", you simply tap into Wails' runtime package to pull the window back into view.
+
+## Faking the "Minimize to Tray" on close
+
+To make it feel like a true background widget, we need to stop the app from exiting when the user clicks the standard window close 'X'.
+
+You catch this inside your Wails `options.App` configuration using the `OnBeforeClose` hook:
+
+```go
+OnBeforeClose: func(ctx context.Context) (prevent bool) {
+    // Hide the window visually, removing it from taskbar
+    runtime.WindowHide(ctx)
+    
+    // Return true to cancel the actual quit process!
+    return true 
+}
+```
+
+Returning `true` cancels the destruction of your app frontend. The window disappears, but your Go backend remains completely untouched and active in the background.
+
+## Triggering it from the Frontend
+
+Having the "X" button minimize your app is standard, but what if you have a custom title bar or a specific "minimize to tray" button physically inside your HTML/Svelte layout?
+
+Wails automatically exports its runtime functions to the frontend. All you need to do is import the `WindowHide` runtime function and hook it up to a click event.
+
+If you were using Svelte, it looks exactly like this:
+
+```svelte
+<script>
+  import { WindowHide } from "../../wailsjs/runtime/runtime";
+  
+  function sendToTray() {
+    // Safely call the Go runtime directly from JS
+    if (typeof WindowHide === "function") {
+        WindowHide();
+    }
+  }
+</script>
+
+<header>
+  <!-- Custom tray button inside your layout -->
+  <button on:click={sendToTray}>⏬ Tray</button>
+</header>
+```
+
+When the user clicks the button, Svelte signals the Go backend to instantly drop the window out of sight. Because we already attached our invisible Systray in that earlier goroutine, the user seamlessly interacts with the tray icon to pull the application directly back up.
+
+It feels completely native, and it only takes roughly 30 lines of code to orchestrate!

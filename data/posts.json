@@ -379,5 +379,16 @@
             "guide"
         ],
         "subtitle": "From Basic Indexing to Advanced Patterns—Master the Most Elegant Feature of Python"
+    },
+    {
+        "id": 27,
+        "title": "Adding a sneaky system tray to Wails v2 without locking your threads",
+        "slug": "adding-a-sneaky-system-tray-to-wails-v2-without-locking-your-threads",
+        "date": "2026-04-13",
+        "tags": [
+            "go",
+            "wails",
+            "system-tray"
+        ]
     }
 ]
