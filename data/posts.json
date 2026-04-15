@@ -394,5 +394,18 @@
             "goroutines"
         ],
         "subtitle": "Keep your background apps running smoothly by combining Wails and Systray without blocking the main OS thread"
+    },
+    {
+        "id": 28,
+        "title": "What is a Tree in DSA?",
+        "slug": "what-is-a-tree-in-dsa",
+        "date": "2026-04-15",
+        "tags": [
+            "dsa",
+            "trees",
+            "graph-theory",
+            "algorithms"
+        ],
+        "subtitle": "Understanding the \"Why\" behind the most fundamental data structure."
     }
 ]
