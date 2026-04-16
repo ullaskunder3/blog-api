@@ -1,0 +1,146 @@
+---
+title: 'Traversal Algorithms: How to Find Everyone without Getting Lost'
+subtitle: A practical guide to BFS, DFS, and the "Checklist" protocol.
+id: 29
+date: '2026-04-16'
+tag:
+  - dsa
+  - algorithms
+  - bfs
+  - dfs
+  - graphs
+  - search
+prev: what-is-a-tree-in-dsa
+next: graphics-template
+---
+
+# Traversal Algorithms: How to Find Everyone without Getting Lost
+
+In our [last post](/data/posts/what-is-a-tree-in-dsa.mdx), we built a network of friends connected by ropes. But what if you need to deliver a message to *everyone* in that network? If you just run around randomly, you'll likely visit some people three times and miss others entirely.
+
+The secret is to use a consistent logic. To understand how these algorithms work, we can build them up from a few simple rules.
+
+## 1. The "Checklist" (The Visited Set)
+
+Before we move an inch, we need a rule to stop ourselves from walking in circles. Imagine one of your friends has connected the ropes in a loop (a **Cycle**).
+
+If you don't keep track of where you've been, you'll follow those ropes in a circle until you're exhausted.
+
+**The Solution:** Carry a **Checklist** in your pocket.
+- Every time you arrive at a friend's house, look at your list: "Is their name already checked off?"
+- If **Yes**: Turn around. You've already visited this person.
+- If **No**: Check off their name and look at who they are connected to.
+
+In code, this is a **Visited Set**. It’s just a digital checklist that ensures you don't repeat your work.
+
+> **Note for Trees:** Since trees have no loops, you technically don't even need the Checklist! You'll never end up at a house that is already on your list.
+
+## 2. BFS: The "Ripple" Method
+
+Imagine you're standing at a friend's house. You want to visit everyone, but you want to visit the people **closest** to you first. 
+
+### The Strategy:
+1. Visit your immediate neighbors.
+2. Then visit *their* immediate neighbors.
+3. Keep going, layer by layer, like a ripple in a pond.
+
+### The Human Walkthrough:
+Imagine a simple network: **A** is connected to **B** and **C**. **B** is connected to **D**.
+
+**Step 1:** Start at **A**. Write "A" in your "To-Visit" list.
+**Step 2:** Take **A** off the list. See his neighbors: **B** and **C**. Add them to the *back* of your list.
+**Step 3:** Take **B** off the list (he was first in line). See his neighbor: **D**. Add **D** to the *back* of the list.
+**Step 4:** Take **C** off the list.
+**Step 5:** Take **D** off the list. You're done!
+
+**The Order:** A → B → C → D. (Level by level!)
+
+### The Python Translation:
+To keep this "To-Visit" list fair, we use a **Queue**. It's just a "First-Come, First-Served" line.
+
+```python
+from collections import deque
+
+def bfs(graph, start_friend):
+    # 1. Our Checklist
+    visited = {start_friend} 
+    # 2. Our "To-Visit" line (Queue)
+    to_visit = deque([start_friend]) 
+
+    while to_visit:
+        # Take the person who has been waiting the longest
+        current = to_visit.popleft() 
+        print(f"Visiting {current}")
+
+        # Look at neighbors
+        for neighbor in graph[current]:
+            if neighbor not in visited:
+                visited.add(neighbor)      # Check them off
+                to_visit.append(neighbor)  # Get in line at the BACK
+```
+
+## 3. DFS: The "Brave Explorer" Method
+
+Unlike the Ripple, the Explorer doesn't care about layers. They find a rope and follow it as deep as it goes until they hit a dead end. Only then do they backtrack and try another path.
+
+### The "Call Stack" Concept:
+DFS uses something called a "Call Stack." This is really just a way of **leaving a note for your future self**. 
+
+When you go deep into a tunnel, you leave a note at the entrance: *"I'm going down Tunnel #1. If I hit a dead end, I'll come back here and try Tunnel #2."*
+
+### The Python Translation:
+In Python, we use **Recursion** for this. When a function calls itself, the computer "pauses" the current task and starts the new one. It keeps a "stack" of these paused tasks to finish later.
+
+```python
+def dfs(graph, friend, visited=None):
+    if visited is None:
+        visited = set() # Our Checklist
+
+    # 1. Check them off
+    visited.add(friend)
+    print(f"Exploring {friend}")
+
+    # 2. Go deep immediately
+    for neighbor in graph[friend]:
+        if neighbor not in visited:
+            # "Pause" the current search to help this neighbor explore
+            dfs(graph, neighbor, visited)
+            # When they are done, come back and check the NEXT neighbor
+```
+
+## 4. The DFS "Triplets" (For Trees)
+
+In a tree, because there is a clear "Top" (the Root), we can be specific about *when* we visit a node compared to its children.
+
+```text
+      A (Parent)
+     / \
+    B   C  (Children)
+```
+
+1. **Pre-Order (Parent First)**: Visit **A**, then **B**, then **C**. Useful for copying the tree.
+2. **In-Order (Middle)**: Visit **B**, then **A**, then **C**. In a "Binary Search Tree," the numbers come out perfectly sorted (1, 2, 3)!
+3. **Post-Order (Children First)**: Visit **B**, then **C**, then **A**. Think of deleting a folder—you have to delete everything inside before you can delete the folder itself.
+
+## 5. How much work is this? (Big O Notation)
+
+Computer scientists use the notation $O(V + E)$ to talk about complexity. Let's break that down into simple terms:
+
+- **$V$ (Vertices)**: These are the **People** in your network.
+- **$E$ (Edges)**: These are the **Ropes** connecting them.
+
+When we say the Complexity is **$O(V + E)$**, we just mean:
+> "To finish this task, you have to talk to every **Person** once and look at every **Rope** once."
+
+It’s about as efficient as possible. 
+
+## Summary: Choosing the Right Tool
+
+| Goal | Method | The Vibe |
+| :--- | :--- | :--- |
+| Find the **shortest** path | **BFS** | A ripple in a pond. |
+| Explore a **maze** | **DFS** | Following a string into a cave. |
+| Find a way to **Kevin Bacon** | **BFS** | Checking friends, then friends-of-friends. |
+| Solve a **Sudoku** | **DFS** | Trying a path and backtracking if you hit a wall. |
+
+**In the next post, we’ll see how these simple systems solve actual LeetCode puzzles like "Number of Islands."**

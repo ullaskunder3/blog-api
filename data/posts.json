@@ -407,5 +407,20 @@
             "algorithms"
         ],
         "subtitle": "Understanding the \"Why\" behind the most fundamental data structure."
+    },
+    {
+        "id": 29,
+        "title": "Traversal Algorithms: Navigating Trees and Graphs with BFS and DFS",
+        "slug": "traversal-algorithms-navigating-trees-and-graphs-with-bfs-and-dfs",
+        "date": "2026-04-16",
+        "tags": [
+            "dsa",
+            "algorithms",
+            "bfs",
+            "dfs",
+            "graphs",
+            "search"
+        ],
+        "subtitle": "Mastering Breadth-First and Depth-First Search."
     }
 ]
