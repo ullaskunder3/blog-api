@@ -2,6 +2,8 @@
 
 This project automates the creation and management of your DSA blog posts.
 
+UPDATE: 4/18/2026:12:12 time to add ai to this make it AI knw
+
 ---
 
 ## Scripts
