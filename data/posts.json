@@ -422,5 +422,14 @@
             "search"
         ],
         "subtitle": "Mastering Breadth-First and Depth-First Search."
+    },
+    {
+        "id": 30,
+        "title": "Binary Search Tree (BST) Concept and Operations",
+        "slug": "binary-search-tree-bst-concept-and-operations",
+        "date": "2026-04-17",
+        "tags": [
+            "dsa trees bst algorithms binary-search"
+        ]
     }
 ]
