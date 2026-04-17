@@ -431,5 +431,14 @@
         "tags": [
             "dsa trees bst algorithms binary-search"
         ]
+    },
+    {
+        "id": 31,
+        "title": "LeetCode 94: Binary Tree Inorder Traversal (Recursive vs Iterative)",
+        "slug": "leetcode-94-binary-tree-inorder-traversal-recursive-vs-iterative",
+        "date": "2026-04-17",
+        "tags": [
+            "leetcode dsa trees dfs recursion stack"
+        ]
     }
 ]
