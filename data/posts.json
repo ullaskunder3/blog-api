@@ -429,8 +429,13 @@
         "slug": "binary-search-tree-bst-concept-and-operations",
         "date": "2026-04-17",
         "tags": [
-            "dsa trees bst algorithms binary-search"
-        ]
+            "dsa",
+            "trees",
+            "bst",
+            "algorithms",
+            "binary-search"
+        ],
+        "subtitle": "The data structure that keeps itself sorted — automatically."
     },
     {
         "id": 31,
@@ -438,7 +443,13 @@
         "slug": "leetcode-94-binary-tree-inorder-traversal-recursive-vs-iterative",
         "date": "2026-04-17",
         "tags": [
-            "leetcode dsa trees dfs recursion stack"
-        ]
+            "leetcode",
+            "dsa",
+            "trees",
+            "dfs",
+            "recursion",
+            "stack"
+        ],
+        "subtitle": "Solving a classic DFS problem with both elegant recursion and a high-performance explicit stack."
     }
 ]
