@@ -1,0 +1,125 @@
+---
+title: 'LeetCode 57: Insert Interval – Efficient Merging'
+subtitle: Master the art of merging intervals with a clean, three-phase linear approach.
+id: 32
+date: '2026-04-19'
+tag:
+  - leetcode
+  - dsa
+  - algorithms
+  - intervals
+  - array
+  - python
+prev: leetcode-94-binary-tree-inorder-traversal-recursive-vs-iterative
+next: graphics-template
+---
+
+# LeetCode 57: Insert Interval – Efficient Merging
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/insert-interval" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Interval problems are a staple of coding interviews. They test your ability to handle **edge cases**, manage **sorted data**, and think about **linear time** solutions.
+
+**LeetCode 57: Insert Interval** is particularly interesting because while it can be solved by simply inserting and re-sorting (O(N log N)), there's a much more elegant **O(N) linear approach** that works in three distinct phases.
+
+---
+
+## 🧩 The Problem
+
+You are given a list of non-overlapping intervals sorted by their start time. Your task is to insert a `newInterval` into the list and merge any overlaps so that the final list remains sorted and non-overlapping.
+
+**Example:**
+- **Existing Intervals:** `[[1,3], [6,9]]`
+- **New Interval:** `[2,5]`
+- **Result:** `[[1,5], [6,9]]` (Note how `[1,3]` and `[2,5]` merged into `[1,5]`)
+
+---
+
+## 🧠 The "Three-Phase" Strategy
+
+Instead of trying to figure out where to "slot in" the interval and then cleanup, we can build a new list from scratch in three logical steps:
+
+### Phase 1: The "Before" Pass
+We skip all intervals that end before the new interval even starts. Since the list is sorted, we just append these directly to our result.
+
+### Phase 2: The "Merge" Pass
+Now we've reached the part where the new interval starts. While the current interval starts before or at the end of our `newInterval`, they overlap! 
+We update our `newInterval` to be the "super-interval" that covers both.
+- `newStart = min(currentStart, newStart)`
+- `newEnd = max(currentEnd, newEnd)`
+
+### Phase 3: The "After" Pass
+Once the merging is done, we append the final `newInterval` and then simply dump the remaining intervals into our result.
+
+---
+
+## 💻 Python Implementation
+
+Here is the clean, readable solution using the three-phase approach:
+
+```python
+class Solution(object):
+    def insert(self, intervals, newInterval):
+        """
+        :type intervals: List[List[int]]
+        :type newInterval: List[int]
+        :rtype: List[List[int]]
+        """
+        result = []
+        i = 0
+        n = len(intervals)
+        
+        # Phase 1: Add all intervals that end before the new interval starts
+        while i < n and intervals[i][1] < newInterval[0]:
+            result.append(intervals[i])
+            i += 1
+
+        # Phase 2: Merge overlapping intervals
+        while i < n and intervals[i][0] <= newInterval[1]:
+            newInterval[0] = min(newInterval[0], intervals[i][0])
+            newInterval[1] = max(newInterval[1], intervals[i][1])
+            i += 1
+        
+        # Add the (potentially merged) new interval
+        result.append(newInterval)
+
+        # Phase 3: Add all remaining intervals
+        while i < n:
+            result.append(intervals[i])
+            i += 1
+
+        return result
+```
+
+---
+
+## 📊 Visual Walkthrough
+
+Imagine we have: `intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]]` and `newInterval = [4,8]`.
+
+1.  **Phase 1:** `[1,2]` ends at 2, which is < 4. **Keep it.** `result = [[1,2]]`.
+2.  **Phase 2 (Start):** `[3,5]` starts at 3, which is <= 8. **Merge!** New range: `[min(3,4), max(5,8)]` = `[3,8]`.
+3.  **Phase 2 (Cont.):** `[6,7]` starts at 6, which is <= 8. **Merge!** New range: `[min(3,6), max(8,7)]` = `[3,8]`.
+4.  **Phase 2 (Cont.):** `[8,10]` starts at 8, which is <= 8. **Merge!** New range: `[min(3,8), max(8,10)]` = `[3,10]`.
+5.  **Phase 2 (End):** `[12,16]` starts at 12, which is > 8. **Stop Merging.**
+6.  **Add NewInterval:** `result = [[1,2], [3,10]]`.
+7.  **Phase 3:** Add `[12,16]`. **Result:** `[[1,2], [3,10], [12,16]]`.
+
+---
+
+## ⏲️ Complexity Analysis
+
+| Metric | Complexity | Explanation |
+| :--- | :--- | :--- |
+| **Time Complexity** | **O(N)** | We traverse the input array exactly once. |
+| **Space Complexity** | **O(N)** | We create a new list to store the result. |
+
+---
+
+## 🏁 Summary
+
+The beauty of this solution lies in its **simplicity**. By breaking the problem down into "before", "during", and "after", we eliminate the need for complex conditional logic or multiple passes. 
+
+**Learner's Tip:** When dealing with sorted arrays and "modifying" them, always consider if building a *new* array linearly is cleaner than modifying the existing one in-place!

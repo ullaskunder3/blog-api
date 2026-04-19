@@ -451,5 +451,20 @@
             "stack"
         ],
         "subtitle": "Solving a classic DFS problem with both elegant recursion and a high-performance explicit stack."
+    },
+    {
+        "id": 32,
+        "title": "LeetCode 57: Insert Interval – Efficient Merging",
+        "slug": "leetcode-57-insert-interval-efficient-merging",
+        "date": "2026-04-19",
+        "tags": [
+            "leetcode",
+            "dsa",
+            "algorithms",
+            "intervals",
+            "array",
+            "python"
+        ],
+        "subtitle": "Master the art of merging intervals with a clean, three-phase linear approach."
     }
 ]
