@@ -478,6 +478,7 @@
             "algorithms",
             "sliding-window",
             "dsa"
-        ]
+        ],
+        "subtitle": "Master the Monotonic Deque approach to efficiently track the maximum value in a sliding window."
     }
 ]
