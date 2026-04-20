@@ -466,5 +466,18 @@
             "python"
         ],
         "subtitle": "Master the art of merging intervals with a clean, three-phase linear approach."
+    },
+    {
+        "id": 33,
+        "title": "LeetCode 239: Sliding Window Maximum",
+        "slug": "leetcode-239-sliding-window-maximum",
+        "date": "2026-04-20",
+        "tags": [
+            "leetcode",
+            "python",
+            "algorithms",
+            "sliding-window",
+            "dsa"
+        ]
     }
 ]

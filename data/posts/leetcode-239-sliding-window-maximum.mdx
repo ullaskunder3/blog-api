@@ -1,0 +1,127 @@
+---
+title: 'LeetCode 239: Sliding Window Maximum'
+subtitle: 'Master the Monotonic Deque approach to efficiently track the maximum value in a sliding window.'
+id: 33
+date: '2026-04-20'
+tag:
+  - leetcode
+  - python
+  - algorithms
+  - sliding-window
+  - dsa
+prev: leetcode-57-insert-interval-efficient-merging
+next: graphics-template
+---
+
+# LeetCode 239: Sliding Window Maximum
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/sliding-window-maximum" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Finding the maximum or minimum across a moving window is a classic pattern in coding interviews. It challenges you to process data in streams and optimize beyond the straightforward "brute-force" solutions.
+
+**LeetCode 239: Sliding Window Maximum** is a quintessential "Hard" problem. While a naive approach would take O(N * k) time by re-scanning the window every time it moves, we can achieve an elegant **O(N) linear time** solution using a trick called a **Monotonic Deque**.
+
+---
+
+## 🧩 The Problem
+
+You are given an array of integers `nums`. A sliding window of size `k` moves from the far left of the array to the far right. You can only see the `k` numbers within this window at any given time. Each time, the sliding window moves right by one position.
+
+Your goal is to return an array of the **max sliding window** values.
+
+**Example:**
+- `nums` = `[1,3,-1,-3,5,3,6,7]`, `k` = `3`
+- **Output:** `[3,3,5,5,6,7]`
+
+---
+
+## 🧠 Approach: Monotonic Deque
+
+A monotonic deque (double-ended queue) is the secret sauce here. Why? Because we need to quickly access the highest value, but we also need to efficiently remove elements as they slide out of our `k`-sized window. 
+
+The key insight is maintaining a **decreasing** deque of *indices*. By storing indices rather than just values, we can tell if an element has fallen out of our window!
+
+### Deque Invariants (Golden Rules)
+1. **Window bounds:** Indices in the deque must *always* fall within the current sliding window limit.
+2. **Decreasing order:** The values associated with the indices in our deque must be strictly decreasing. This guarantees that the **front** of our deque is *always* the current window's maximum.
+
+### Step-by-Step Logic for Each New Element
+
+1. **Pop from the front:** If the index at the front of the deque has fallen completely outside our current window `[i - k + 1, i]`, we remove it.
+2. **Pop from the back:** Any indices currently in the deque whose values are *less than or equal to* our current element are basically useless now. They can *never* be the maximum as long as our newer, larger current element is around. We pop them off the back!
+3. **Append to the back:** Add our current index `i` to the back of the deque.
+4. **Record the result:** Once we have processed at least `k` elements (forming our first full window), the value at the index residing at the front of the deque (`deque[0]`) is our maximum. We append it to our result list.
+
+---
+
+## 💻 Python Implementation
+
+Here is the clean and optimal Python solution using the `collections.deque`:
+
+```python
+from collections import deque
+
+class Solution(object):
+    def maxSlidingWindow(self, nums, k):
+        """
+        :type nums: List[int]
+        :type k: int
+        :rtype: List[int]
+        """
+        dq = deque()   # stores indices; front = index of current max
+        result = []
+
+        for i, num in enumerate(nums):
+            # 1. Remove indices outside the window from the front
+            while dq and dq[0] < i - k + 1:
+                dq.popleft()
+
+            # 2. Maintain decreasing order: remove smaller elements from back
+            #    (they'll never be the max while `num` is in the window)
+            while dq and nums[dq[-1]] <= num:
+                dq.pop()
+
+            dq.append(i)
+
+            # 3. Start recording once the first window is complete
+            if i >= k - 1:
+                result.append(nums[dq[0]])
+
+        return result
+```
+
+---
+
+## 📊 Visual Walkthrough
+
+Let's visually trace `nums = [1, 3, -1, -3, 5, 3, 6, 7]` and `k = 3`:
+
+1. **`i=0, num=1`**: `deque=[0]` → values=[1] *(window not full)*
+2. **`i=1, num=3`**: 3 > 1, so pop 0. `deque=[1]` → values=[3] *(window not full)*
+3. **`i=2, num=-1`**: -1 < 3. `deque=[1,2]` → values=[3,-1]. **Window full (`i=2`). Max = nums[1] = 3. ✓**
+4. **`i=3, num=-3`**: -3 < -1. `deque=[1,2,3]` → values=[3,-1,-3]. **Max = nums[1] = 3. ✓**
+5. **`i=4, num=5`**: 5 is large! Pop all smaller element indices (3, 2, 1). `deque=[4]` → values=[5]. Index `1` was also out of window anyway. **Max = nums[4] = 5. ✓**
+6. **`i=5, num=3`**: 3 < 5. `deque=[4,5]` → values=[5,3]. **Max = nums[4] = 5. ✓**
+7. **`i=6, num=6`**: Pop 5 (3≤6), pop 4. `deque=[6]` → values=[6]. **Max = nums[6] = 6. ✓**
+8. **`i=7, num=7`**: Pop 6 (6≤7). `deque=[7]` → values=[7]. **Max = nums[7] = 7. ✓**
+
+**Output:** `[3, 3, 5, 5, 6, 7]`
+
+---
+
+## ⏲️ Complexity Analysis
+
+| Metric | Complexity | Explanation |
+| :--- | :--- | :--- |
+| **Time Complexity** | **O(N)** | Each index is added to and removed from the deque at most exactly once. Thus, the inner while loops run a total of O(N) times across the entire array traversal. |
+| **Space Complexity** | **O(K)** | The deque never holds more than `k` indices at any given point in time. |
+
+---
+
+## 🏁 Summary
+
+The **Monotonic Deque** might sound intimidating, but it's fundamentally just a queue sorted by value that keeps track of indices! 
+
+**Learner's Tip:** When a problem asks for an ongoing max/min over a window, and you realize older smaller/larger values are entirely overshadowed by newer ones, consider utilizing a Monotonic Deque. Storing indices lets you handle the "window expiry" gracefully while preserving your maximum at the front!
