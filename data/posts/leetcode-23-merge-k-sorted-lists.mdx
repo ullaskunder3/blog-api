@@ -1,0 +1,184 @@
+---
+title: 'LeetCode 23: Merge k Sorted Lists'
+subtitle: 'Master the art of merging multiple sorted linked lists using Min-Heaps and Divide & Conquer strategies.'
+id: 34
+date: '2026-04-21'
+tag:
+  - leetcode
+  - python
+  - algorithms
+  - linked-list
+  - heap
+  - divide-and-conquer
+prev: leetcode-239-sliding-window-maximum
+next: graphics-template
+---
+
+Welcome back! Today, we are tackling a classic "Hard" problem that commonly appears in senior engineering interviews: **LeetCode 23: Merge k Sorted Lists**.
+
+This problem is a fantastic bridge between fundamental data structures (`Linked Lists`) and advanced problem-solving strategies (`Heaps` and `Divide & Conquer`). Let's break it down step-by-step so you conceptually grasp the "why" before diving into the code.
+
+---
+
+## 🧐 The Problem Statement
+
+You are given an array of `k` linked-lists, where each linked-list is strictly sorted in **ascending order**.
+
+Your task is to **merge all the linked-lists into one single sorted linked-list** and return its head.
+
+### Example
+
+**Input**:
+```text
+lists = [
+  1 -> 4 -> 5,
+  1 -> 3 -> 4,
+  2 -> 6
+]
+```
+
+**Output**:
+`1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5 -> 6`
+
+### Constraints
+
+- `k == lists.length`
+- $0 \le k \le 10^4$
+- $0 \le lists[i].length \le 500$
+- The total number of nodes won't exceed $10^4$.
+
+---
+
+## 🚀 Approach 1: Min-Heap (Priority Queue)
+
+When you hear "find the smallest among `k` items sequentially", your brain should instantly scream **Min-Heap (Priority Queue)**. 
+
+### The Strategy
+
+Instead of comparing all nodes across every list every single time (which takes $O(k)$ per step), we can use a Min-Heap to keep track of the *current smallest node* among the heads of the $k$ lists. 
+
+1. **Initialize the Heap**: Put the `head` node of every list into the Min-Heap.
+2. **Pop the Smallest**: The heap will automatically bring the node with the smallest value to the top in $O(\log k)$ time. Pop it, and attach it to your merged result list.
+3. **Push the Next Node**: If the popped node has a `.next` node, push that next node into the heap.
+4. **Repeat** until the heap is empty!
+
+### Python 3 Implementation
+
+```python
+import heapq
+
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        # We need a custom comparison since heapq doesn't know how to compare ListNodes.
+        # So, we map the node to a tuple: (node.val, i, node)
+        # `i` is the list index to handle tie-breakers when two nodes have the same value.
+        
+        heap = []
+        
+        # Step 1: Initialize the heap with the head of each list
+        for i, lst in enumerate(lists):
+            if lst:
+                heapq.heappush(heap, (lst.val, i, lst))
+                
+        dummy = ListNode(0)
+        curr = dummy
+        
+        # Step 2 & 3: Pop the smallest and push the next node
+        while heap:
+            val, i, node = heapq.heappop(heap)
+            
+            # Attach to the merged list
+            curr.next = node
+            curr = curr.next
+            
+            # If there's a next node in the same list, push it to the heap
+            if node.next:
+                heapq.heappush(heap, (node.next.val, i, node.next))
+                
+        return dummy.next
+```
+
+### Complexity
+- **Time Complexity**: $O(N \log k)$, where $N$ is the total number of nodes across all lists and $k$ is the number of lists. Pushing/popping from a heap of size $k$ takes $O(\log k)$. We do this for all $N$ nodes.
+- **Space Complexity**: $O(k)$, as the heap stores at most $k$ nodes concurrently.
+
+---
+
+## 🚀 Approach 2: Divide and Conquer (Merge Sort Style)
+
+If you've studied Merge Sort, you know that merging two sorted arrays (or linked lists) is an $O(N)$ operation. What if we do this recursively?
+
+### The Strategy
+
+Rather than dealing with all $k$ lists at once, let's pair them up.
+1. Merge list 1 and list 2.
+2. Merge list 3 and list 4.
+3. ...and so on.
+
+After one pass, $k$ lists become $k/2$ lists. Then $k/4$, $k/8$, until only **1 list** is left.
+
+### Python 3 Implementation
+
+```python
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        if not lists:
+            return None
+        
+        # Loop until only one list remains
+        while len(lists) > 1:
+            merged_lists = []
+            
+            # Jump 2 steps at a time to grab pairs
+            for i in range(0, len(lists), 2):
+                list1 = lists[i]
+                # Check if there is an odd number of lists
+                list2 = lists[i + 1] if (i + 1) < len(lists) else None
+                
+                # Merge the pair and add to our new list of lists
+                merged_lists.append(self.mergeTwoLists(list1, list2))
+                
+            lists = merged_lists
+            
+        return lists[0]
+        
+    def mergeTwoLists(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode()
+        tail = dummy
+        
+        while l1 and l2:
+            if l1.val < l2.val:
+                tail.next = l1
+                l1 = l1.next
+            else:
+                tail.next = l2
+                l2 = l2.next
+            tail = tail.next
+            
+        # Attach any remaining elements
+        if l1:
+            tail.next = l1
+        if l2:
+            tail.next = l2
+            
+        return dummy.next
+```
+
+### Complexity
+- **Time Complexity**: $O(N \log k)$. We pair lists up and merge. The depth of this merging tree is $O(\log k)$. In each level of depth, we process basically all $N$ nodes.
+- **Space Complexity**: $O(1)$ extra space beyond what's needed for the input, giving it a slight memory advantage over the min-heap method (though the `merged_lists` array takes $O(k)$ auxiliary space if done iteratively).
+
+---
+
+## 🎯 Which Should I Use in an Interview?
+
+- The **Min-Heap** solution is often easiest to type out rapidly and demonstrates good knowledge of standard library structures (`heapq` in Python). 
+- The **Divide and Conquer** solution demonstrates an excellent grasp of algorithm theory and space optimization without relying on external data structures.
+
+If you understand *both*, you're demonstrating true mastery of algorithm concepts. Happy coding!

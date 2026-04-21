@@ -480,5 +480,20 @@
             "dsa"
         ],
         "subtitle": "Master the Monotonic Deque approach to efficiently track the maximum value in a sliding window."
+    },
+    {
+        "id": 34,
+        "title": "LeetCode 23: Merge k Sorted Lists",
+        "slug": "leetcode-23-merge-k-sorted-lists",
+        "date": "2026-04-21",
+        "tags": [
+            "leetcode",
+            "python",
+            "algorithms",
+            "linked-list",
+            "heap",
+            "divide-and-conquer"
+        ],
+        "subtitle": "Master the art of merging multiple sorted linked lists using Min-Heaps and Divide & Conquer strategies."
     }
 ]
