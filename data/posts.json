@@ -507,6 +507,7 @@
             "algorithms",
             "bfs",
             "graph"
-        ]
+        ],
+        "subtitle": "Mastering graph traversal by thinking backwards: How to find cells that flow to both oceans using BFS."
     }
 ]

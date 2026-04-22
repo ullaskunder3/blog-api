@@ -38,6 +38,9 @@ const date = dateArg
   ? dateArg.split("=")[1]
   : new Date().toISOString().split("T")[0];
 
+const subtitleArg = args.find((a) => a.startsWith("--subtitle="));
+const subtitle = subtitleArg ? subtitleArg.split("=")[1] : "";
+
 // --- Slugify Function ---
 const slugify = (text) =>
   text
@@ -58,6 +61,7 @@ const id = posts.length ? Math.max(...posts.map((p) => p.id)) + 1 : 1;
 const newPost = {
   id,
   title,
+  subtitle,
   slug,
   date,
   tags,
@@ -74,7 +78,7 @@ const filePath = path.join(POSTS_DIR, filename);
 const frontmatter =
   `---\n` +
   `title: "${title}"\n` +
-  `subtitle: ""\n` +
+  `subtitle: "${subtitle}"\n` +
   `id: ${id}\n` +
   `date: "${date}"\n` +
   `tag:\n${tags.map((t) => `  - ${t}`).join("\n")}\n` +
