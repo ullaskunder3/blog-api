@@ -1,0 +1,160 @@
+---
+title: 'LeetCode 417: Pacific Atlantic Water Flow'
+subtitle: 'Mastering graph traversal by thinking backwards: How to find cells that flow to both oceans using BFS.'
+id: 35
+date: '2026-04-22'
+tag:
+  - leetcode
+  - python
+  - algorithms
+  - bfs
+  - graph
+prev: leetcode-23-merge-k-sorted-lists
+next: graphics-template
+---
+
+Ever looked at a map and wondered how water finds its way to the sea? 🌧️
+
+In today's problem, we're dealing with an island caught between two massive oceans: the **Pacific** and the **Atlantic**. Our goal? Find the exact spots on the island where rain can travel all the way to *both*. 
+
+This is a classic graph traversal problem that tests your ability to optimize search using BFS (Breadth-First Search) and, more importantly, your ability to "think backwards."
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/pacific-atlantic-water-flow/?envType=problem-list-v2&envId=oizxjoit" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+---
+
+## 🧐 The Problem Statement
+
+There is an $m \times n$ rectangular island that borders both the Pacific Ocean (top and left edges) and the Atlantic Ocean (bottom and right edges).
+
+You are given an $m \times n$ integer matrix `heights` where `heights[r][c]` represents the height above sea level of the cell at coordinate $(r, c)$.
+
+The rules of flow:
+1. Water flows to neighboring cells (North, South, East, West) if the neighbor's height is **less than or equal** to the current cell's height.
+2. Water can flow from any cell adjacent to an ocean into that ocean.
+
+**Goal:** Return a 2D list of coordinates where rain water can flow to **both** the Pacific and Atlantic oceans.
+
+---
+
+## 💡 The Core Insight: Thinking Backwards
+
+If you try to simulate rain falling on every single cell and see if it reaches both oceans, you'll find yourself trapped in a performance nightmare. With a $200 \times 200$ grid, checking every cell individually means running thousands of searches.
+
+Instead, let's **flip the logic**. 🧠
+
+### The "Flood" Mental Model
+Imagine the oceans are flooding. Instead of water flowing *downhill* from the land to the sea, let's imagine the ocean water is trying to climb **uphill** onto the island.
+
+1. **Pacific Flood**: Start from all cells touching the Pacific (top and left) and see how far "uphill" the water can reach.
+2. **Atlantic Flood**: Start from all cells touching the Atlantic (bottom and right) and see how far "uphill" it can reach.
+3. **The Intersection**: Any cell that was reached by *both* floods is a cell where rain can flow to both oceans.
+
+### Wait, Why "Uphill"?
+This is where students often get confused. 
+- In the **real world**, water flows from **High → Low**.
+- In our **reverse search**, we start at the **Low** point (the ocean) and see which **High** points could have sent water to us. 
+- Therefore, we only move to a neighbor if its height is **greater than or equal** to our current cell.
+
+---
+
+## 🚀 The BFS Approach
+
+While you can solve this with DFS, **BFS (Breadth-First Search)** is often cleaner for interviews. It naturally models a wave of water expanding outward.
+
+### Step-by-Step Breakdown
+
+1. **Two "Source" Lists**: 
+   - We create a queue for the Pacific (all cells on the top row and left column).
+   - We create a queue for the Atlantic (all cells on the bottom row and right column).
+2. **Two "Reachability" Grids**: 
+   - `pacific[m][n]` and `atlantic[m][n]` boolean grids to track which cells each ocean can "reach" by moving uphill.
+3. **The BFS Process**:
+   - For each ocean, we pop a cell from its queue.
+   - We look at its neighbors (N, S, E, W).
+   - If a neighbor is **taller or equal** to the current cell AND we haven't visited it yet, it means water *from* that neighbor could flow *to* this ocean.
+   - Mark it as `True` and add it to the queue.
+4. **Final Check**: Loop through the entire grid. If a cell is `True` in both `pacific` and `atlantic`, it's a winner!
+
+### Python Implementation
+
+```python
+from collections import deque
+
+class Solution(object):
+    def pacificAtlantic(self, heights):
+        if not heights:
+            return []
+
+        m, n = len(heights), len(heights[0])
+
+        # Tracks which cells can reach which ocean
+        pacific = [[False] * n for _ in range(m)]
+        atlantic = [[False] * n for _ in range(m)]
+
+        def bfs(queue, visited):
+            directions = [(1,0), (-1,0), (0,1), (0,-1)]
+
+            while queue:
+                r, c = queue.popleft()
+
+                for dr, dc in directions:
+                    nr, nc = r + dr, c + dc
+
+                    # 1. Stay within bounds
+                    # 2. Don't visit the same cell twice
+                    # 3. "Uphill" rule: neighbor must be >= current
+                    if (0 <= nr < m and 0 <= nc < n and
+                        not visited[nr][nc] and
+                        heights[nr][nc] >= heights[r][c]):
+
+                        visited[nr][nc] = True
+                        queue.append((nr, nc))
+
+        # Initialize queues for multi-source BFS
+        pacific_q = deque()
+        atlantic_q = deque()
+
+        # Load Pacific sources (Top row and Left column)
+        for c in range(n):
+            pacific_q.append((0, c))
+            pacific[0][c] = True
+        for r in range(m):
+            pacific_q.append((r, 0))
+            pacific[r][0] = True
+
+        # Load Atlantic sources (Bottom row and Right column)
+        for c in range(n):
+            atlantic_q.append((m - 1, c))
+            atlantic[m - 1][c] = True
+        for r in range(m):
+            atlantic_q.append((r, n - 1))
+            atlantic[r][n - 1] = True
+
+        # Run the "uphill floods"
+        bfs(pacific_q, pacific)
+        bfs(atlantic_q, atlantic)
+
+        # Result: The intersection of both reachability maps
+        result = []
+        for r in range(m):
+            for c in range(n):
+                if pacific[r][c] and atlantic[r][c]:
+                    result.append([r, c])
+        
+        return result
+```
+
+---
+
+## 🎯 Complexity Analysis
+
+*   **Time Complexity**: $O(M \times N)$. In the worst case, we visit every cell a constant number of times (once for each ocean's BFS).
+*   **Space Complexity**: $O(M \times N)$. We store two boolean matrices and the BFS queues can hold up to $M \times N$ elements in the worst case.
+
+### Interview Pro-Tip 💡
+When an interviewer asks why you chose this "reverse" approach, mention **Efficiency**. Instead of $O((M \times N)^2)$ for a naive "check every cell" approach, we brought it down to a linear $O(M \times N)$ by thinking about the problem from the perspective of the destination (the oceans) rather than the source (the rain).
+
+Happy coding, and may your logic always flow in the right direction! 🌊

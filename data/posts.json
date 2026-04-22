@@ -495,5 +495,18 @@
             "divide-and-conquer"
         ],
         "subtitle": "Master the art of merging multiple sorted linked lists using Min-Heaps and Divide & Conquer strategies."
+    },
+    {
+        "id": 35,
+        "title": "LeetCode 417: Pacific Atlantic Water Flow",
+        "slug": "leetcode-417-pacific-atlantic-water-flow",
+        "date": "2026-04-22",
+        "tags": [
+            "leetcode",
+            "python",
+            "algorithms",
+            "bfs",
+            "graph"
+        ]
     }
 ]
