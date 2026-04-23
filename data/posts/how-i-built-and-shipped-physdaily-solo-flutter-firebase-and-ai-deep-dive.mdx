@@ -89,46 +89,37 @@ Building a full web-based admin panel (with auth, a rich text editor, and a depl
 
 ### How the Pipeline Works
 
-**Step 1 AI Question Generation**
+**Step 1: AI Question Generation with Constraints**
 
-Instead of writing questions manually, I built a script that calls an LLM with structured parameters:
+Instead of writing questions manually, I built a script that calls an LLM with strict constraints to ensure the content fits the app's minimal UI. I don't just ask for a "question"; I enforce a specific format and logic:
 
 ```
-Topic: Rotational Motion
-Difficulty: Medium
-Format: Multiple-choice, 4 options
+Topic: [Next sequential topic based on history]
+Constraint: Exactly 4-letter answer (for the wordle-style UI)
+Format: JSON with explanation
 ```
 
-The model generates a question, four options, the correct answer, and a brief explanation and writes it directly into `puzzles.json`. One command. Done.
+The model generates the question, ensures the answer fits the 4-letter grid, and appends it directly to `puzzles.json`. One command, perfectly formatted content.
 
-**Step 2 The "Rule-Flip" Deployment**
+**Step 2: The "Rule-Flip" Deployment**
 
-Pushing the updated JSON to Firestore without a complex admin auth system required a pragmatic hack. I wrote `updatedb.js`, a Node.js script that:
+Pushing the updated JSON to Firestore without a complex admin auth system required a pragmatic hack. I wrote a Node.js script that handles the deployment by temporarily flipping my security rules:
 
-1. Temporarily opens Firestore Security Rules to `allow write: if true`
-2. Deploys the updated rules via `firebase-tools`
-3. Syncs the JSON to Firestore
-4. **Immediately** reverts the rules to `allow write: if false`
+1. **Open Door:** It pushes a security rule update that sets `allow write: if true`.
+2. **Push Data:** It syncs the local `puzzles.json` to Firestore.
+3. **Close Door:** It immediately reverts the rules to `allow write: if false`.
 
-```javascript
-// updatedb.js simplified
-await deployRules({ write: 'if true' });
-await syncJsonToFirestore('./puzzles.json');
-await deployRules({ write: 'if false' });
-console.log('✅ Puzzles synced. Rules reverted.');
-```
-
-My local Firebase credentials act as the "key." The window of vulnerability is seconds. This is a conscious V1 trade-off and it worked perfectly.
+While it sounds risky, the window of vulnerability is measured in milliseconds, and the script is triggered manually from my secure local machine. It’s a "peace of mind" hack that works flawlessly for a solo project.
 
 [this image will go here CMS pipeline diagram: AI Script → puzzles.json → updatedb.js → Firestore → App]
 
 ### JSON Growth Management
 
-One practical concern: `puzzles.json` grows with every question added. My current thinking is to implement a **rolling window** once the archive hits a threshold (say, 90 questions), the oldest entries are pruned from the JSON before the next sync. Firestore holds the canonical history; the local file is just the staging ground.
+One practical concern: `puzzles.json` grows with every question added. My current thinking is to implement a **rolling window**—once the archive hits a threshold (say, 90 questions), the oldest entries are pruned from the JSON before the next sync. Firestore holds the canonical history; the local file is just the staging ground.
 
-### The Roadmap: PDF-to-Question Pipeline
+### The Roadmap: Human-in-the-Loop Automation
 
-The longer-term vision is to connect a small, locally-run LLM to a physics textbook PDF. The model reads a chapter, extracts key concepts, and generates a week's worth of questions fully automated, zero manual authoring. A weekly cron job handles the sync. This brings the content engine closer to self-sustaining.
+The longer-term vision is to connect a locally-run LLM to physics textbook PDFs to automate content creation entirely. However, I’ll keep a **"Developer Review"** step—the AI generates the batch, but a human (me) must review and "accept" the questions before the script triggers the cloud push. This ensures quality control while maintaining high-speed production.
 
 ## 4. Engineering Decisions Inside the App
 
