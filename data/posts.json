@@ -512,8 +512,8 @@
     },
     {
         "id": 36,
-        "title": "shipping physdaily app solo with ai",
-        "subtitle": "",
+        "title": "Shipping PhysDaily: From Blank IDE to Google Play — A Solo Engineer's Deep Dive",
+        "subtitle": "How I built, branded, and shipped a cross-platform physics challenge app with an AI-powered CMS and Firebase backend.",
         "slug": "shipping-physdaily-app-solo-with-ai",
         "date": "2026-04-23",
         "tags": [
@@ -528,7 +528,9 @@
             "googleplay",
             "dart",
             "canva",
-            "ai"
+            "product-design",
+            "lean-startup",
+            "mobile-engineering"
         ]
     }
 ]
