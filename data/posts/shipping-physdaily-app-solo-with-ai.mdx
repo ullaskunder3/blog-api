@@ -32,8 +32,6 @@ next: graphics-template
 
 If you're a developer curious about **shipping a full-stack mobile product solo**, this post is for you. No team. No startup runway. Just deliberate engineering decisions, the right tools, and a bias for shipping. By the end of this, you'll walk away with a clear picture of how to architect a Flutter + Firebase app, build a lightweight AI-powered CMS, and launch on Google Play — from idea to production.
 
----
-
 ## The Product: PhysDaily
 
 **PhysDaily** is a daily physics challenge app inspired by the classic "Physics Bowl" format — think Wordle, but for physics students, competitive exam aspirants, and anyone who wants to keep their analytical thinking sharp in the age of instant AI answers.
@@ -48,7 +46,6 @@ It's live. It's reviewed. It's on Google Play.
 
 ![This image will go here — Google Play listing screenshot](https://www.iprofile.dev/_next/image?url=%2Fimg%2Fphys-daily%2Fmockup3.png&w=1080&q=75)
 
----
 
 ## 1. Why This Stack? The Speed-to-Market Argument
 
@@ -70,8 +67,6 @@ The critical win was **real-time push**: the moment I deploy a new puzzle from t
 
 [this image will go here architecture overview diagram: Flutter App ↔ Firestore ↔ CMS]
 
----
-
 ## 2. The Architecture: Three Separate Repositories, One Product
 
 What most solo projects get wrong is monolith thinking. I made an early call to separate concerns across three distinct codebases:
@@ -83,8 +78,6 @@ What most solo projects get wrong is monolith thinking. I made an early call to 
 | `iprofile-dev` | Web | Brand, portfolio, and landing page |
 
 This separation paid off immediately. Updating the CMS doesn't touch the app. Rebuilding the landing page doesn't break the content pipeline. Each piece is independently deployable and testable.
-
----
 
 ## 3. The CMS: Content-as-Code with an AI Layer
 
@@ -137,8 +130,6 @@ One practical concern: `puzzles.json` grows with every question added. My curren
 
 The longer-term vision is to connect a small, locally-run LLM to a physics textbook PDF. The model reads a chapter, extracts key concepts, and generates a week's worth of questions fully automated, zero manual authoring. A weekly cron job handles the sync. This brings the content engine closer to self-sustaining.
 
----
-
 ## 4. Engineering Decisions Inside the App
 
 ### State Management: Right-Sized, Not Over-Engineered
@@ -180,8 +171,6 @@ This "sticky" design is intentional. If a user feels their 15-day streak is perm
 
 ![banner](https://www.iprofile.dev/_next/image?url=%2Fimg%2Fphys-daily%2Fmockup1.png&w=1080&q=75)
 
----
-
 ## 5. Keeping It Lean: Asset and Performance Decisions
 
 Mobile users notice app size. I kept PhysDaily **under 10MB** through two deliberate choices:
@@ -198,8 +187,6 @@ Every icon comes from `fluentui_system_icons`. Every UI element is drawn in code
 
 Even with the Pseudo-CMS approach, I locked the frontend using **Firebase AppCheck**. Only the legitimate, signed Flutter app can query Firestore. Bots and scrapers trying to harvest daily answers hit a wall.
 
----
-
 ## 6. The Brand: Designed with Intent
 
 The visual identity the app icon, Play Store screenshots, landing page was crafted using **Canva AI and Gemini**, then refined by hand. The brand home is [iProfile Labs](https://www.iprofile.dev), a portfolio that positions PhysDaily alongside other focused tools I've shipped: Darvin IDE, SwidoMark, and Turai Blog.
@@ -215,8 +202,6 @@ Google Play's internal testing requires a minimum of 12 testers active for 14 co
 My solution: I used my **LinkedIn network and iProfile.dev portfolio** to drive interest. I shared a Google Form framed not as "please test my app" but as "be first to try a physics challenge app before launch." The positioning mattered. I hit 12 testers, completed the 14-day window, and cleared production review.
 
 > **Lesson:** Distribution is an engineering problem. Solve it with the same intentionality as your code.
-
----
 
 ## 7. What's Coming: The Engagement Roadmap
 
@@ -248,8 +233,6 @@ One of the strongest engagement mechanics in daily challenge apps is the **socia
 
 A lightweight "Connections" feature where users can see (anonymously or by name) that someone in their network attempted today's challenge would dramatically increase motivation without requiring a full social graph. This is closer to Strava's "kudos" mechanic than Facebook's feed.
 
----
-
 ## 8. Scaling to 100k Users: What Would Break First
 
 V1 was built for shipping. Here's the honest assessment of what would need to change at scale:
@@ -266,8 +249,6 @@ The Security Rule Flip is a solo-developer power tool. For a team or even for pe
 
 The daily puzzle is the same document for every user. At 100k daily active users, that's 100k Firestore reads for a single document. Routing the puzzle fetch through **Firebase Hosting with aggressive CDN cache headers** would reduce this to near zero database load for the most common read operation.
 
----
-
 ## Reflection
 
 PhysDaily started as a question: *Can I build a premium-feeling mobile product, alone, without a backend team, without burning months on infrastructure?*
@@ -276,18 +257,10 @@ The answer is yes with the right trade-offs. Flutter and Firebase gave me the le
 
 This wasn't just an app. It was a complete exercise in **product thinking, system design, and distribution** compressed into a single solo project.
 
----
-
 ## Try It
 
 📲 **[Download PhysDaily on Google Play](https://play.google.com/store/apps/details?id=com.iprofilelabs.physdaily)**
 
 🌐 **[Product page iprofile.dev/phys-daily](https://www.iprofile.dev/phys-daily)**
 
----
-
 *Have thoughts on the architecture, the CMS pipeline, or the engagement roadmap? I'd love to hear from you — connect with me on [LinkedIn](https://www.linkedin.com/in/ullaskunder) or open an issue on GitHub.*
-
----
-
-**Tags:** `flutter` `firebase` `mobile-development` `system-design` `rapid-prototyping` `content-architecture` `ai-cms` `solo-developer` `google-play` `dart`
