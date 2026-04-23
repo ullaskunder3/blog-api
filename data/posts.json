@@ -509,5 +509,28 @@
             "graph"
         ],
         "subtitle": "Mastering graph traversal by thinking backwards: How to find cells that flow to both oceans using BFS."
+    },
+    {
+        "id": 36,
+        "title": "How I Built and Shipped PhysDaily Solo: Flutter, Firebase, and AI Deep Dive",
+        "subtitle": "From blank IDE to Google Play: A solo engineer's guide to building and branding a cross-platform physics app.",
+        "slug": "how-i-built-and-shipped-physdaily-solo-flutter-firebase-and-ai-deep-dive",
+        "date": "2026-04-23",
+        "tags": [
+            "flutter",
+            "firebase",
+            "mobileapp",
+            "system design",
+            "rapid prototyping",
+            "ai",
+            "cms",
+            "solo",
+            "googleplay",
+            "dart",
+            "canva",
+            "product-design",
+            "lean-startup",
+            "mobile-engineering"
+        ]
     }
 ]
