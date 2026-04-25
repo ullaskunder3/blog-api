@@ -1,0 +1,132 @@
+---
+title: Longest Increasing Subsequence
+subtitle: Mastering the LIS problem with Dynamic Programming and Binary Search optimization.
+id: 37
+date: '2026-04-25'
+tag:
+  - algorithms
+  - python
+  - dsa
+  - dynamic-programming
+  - binary-search
+  - interview
+prev: shipping-physdaily-a-solo-engineer-s-blueprint-for-ai-powered-mobile-apps
+next: graphics-template
+---
+
+# Longest Increasing Subsequence
+
+Given an integer array `nums`, return the length of the longest strictly increasing subsequence.
+
+### Examples
+
+**Example 1:**
+- **Input:** `nums = [10,9,2,5,3,7,101,18]`
+- **Output:** `4`
+- **Explanation:** The longest increasing subsequence is `[2,3,7,101]`, therefore the length is `4`.
+
+**Example 2:**
+- **Input:** `nums = [0,1,0,3,2,3]`
+- **Output:** `4`
+
+**Example 3:**
+- **Input:** `nums = [7,7,7,7,7,7,7]`
+- **Output:** `1`
+
+### Constraints
+- `1 <= nums.length <= 2500`
+- `-10^4 <= nums[i] <= 10^4`
+
+---
+
+## ✅ Approach 1: Dynamic Programming (O(n²))
+
+The core idea is to compute the length of the LIS ending at each index `i`.
+
+### Idea:
+- Let `dp[i]` be the length of the LIS ending at index `i`.
+- For each element at index `i`, we look at all previous elements at index `j` (where `j < i`).
+- If `nums[j] < nums[i]`, it means we can extend the subsequence ending at `j` with `nums[i]`.
+- We update `dp[i] = max(dp[i], dp[j] + 1)`.
+
+### Code:
+```python
+class Solution(object):
+    def lengthOfLIS(self, nums):
+        if not nums:
+            return 0
+        
+        n = len(nums)
+        # Initialize DP array with 1 (each element is a subsequence of length 1)
+        dp = [1] * n
+        
+        for i in range(n):
+            for j in range(i):
+                if nums[j] < nums[i]:
+                    dp[i] = max(dp[i], dp[j] + 1)
+        
+        return max(dp)
+```
+
+---
+
+## 🚀 Approach 2: Binary Search (O(n log n)) — Optimal
+
+This is the highly optimized approach often expected in top-tier interviews.
+
+### Key Idea:
+We maintain a list `tails` where `tails[k]` is the **smallest possible ending value** of an increasing subsequence of length `k+1`.
+
+1. For each number in `nums`:
+   - Use **binary search** to find its position in `tails`.
+   - If the number is larger than all elements in `tails`, append it (we found a longer subsequence).
+   - Otherwise, replace the first element in `tails` that is greater than or equal to the current number (we found a "smaller" tail for that length, which is better for future extensions).
+
+### Example Walkthrough:
+`nums = [10, 9, 2, 5, 3, 7, 101, 18]`
+
+| Step | Num | `tails` evolution | Action |
+| :--- | :--- | :--- | :--- |
+| 1 | 10 | `[10]` | Append |
+| 2 | 9 | `[9]` | Replace 10 with 9 |
+| 3 | 2 | `[2]` | Replace 9 with 2 |
+| 4 | 5 | `[2, 5]` | Append |
+| 5 | 3 | `[2, 3]` | Replace 5 with 3 |
+| 6 | 7 | `[2, 3, 7]` | Append |
+| 7 | 101 | `[2, 3, 7, 101]` | Append |
+| 8 | 18 | `[2, 3, 7, 18]` | Replace 101 with 18 |
+
+**Final Length:** `4`
+
+### Code:
+```python
+import bisect
+
+class Solution(object):
+    def lengthOfLIS(self, nums):
+        tails = []
+        
+        for num in nums:
+            # Find the index where 'num' should be placed
+            idx = bisect.bisect_left(tails, num)
+            
+            if idx == len(tails):
+                # num is larger than all current tails, extend the LIS
+                tails.append(num)
+            else:
+                # Replace the tail at idx with num (making it smaller)
+                tails[idx] = num
+        
+        return len(tails)
+```
+
+---
+
+## ⚠️ Important Insight
+The `tails` list is **not** the actual subsequence. For example, in the walkthrough above, the final `tails` is `[2, 3, 7, 18]`, while one valid LIS is `[2, 3, 7, 101]`. `tails` only helps us track the *best possible endings* to compute the correct **length** efficiently.
+
+## 🧠 Interview Tips
+1. **Start Simple:** If you are unsure, start by explaining the $O(n^2)$ DP approach. It shows you understand the subproblem structure.
+2. **Optimization:** Pivot to the $O(n \log n)$ solution by explaining how `tails` keeps track of potential subsequence endings.
+3. **Patience:** Be ready to explain *why* replacing elements is safe. (Replacing a larger tail with a smaller one doesn't change the length of existing subsequences but makes it easier to extend them later).
+

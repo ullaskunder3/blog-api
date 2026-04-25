@@ -524,5 +524,20 @@
             "system-design",
             "rapid-prototyping"
         ]
+    },
+    {
+        "id": 37,
+        "title": "Longest Increasing Subsequence",
+        "subtitle": "Mastering the LIS problem with Dynamic Programming and Binary Search optimization.",
+        "slug": "longest-increasing-subsequence",
+        "date": "2026-04-25",
+        "tags": [
+            "algorithms",
+            "python",
+            "dsa",
+            "dynamic-programming",
+            "binary-search",
+            "interview"
+        ]
     }
 ]
