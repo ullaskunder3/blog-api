@@ -527,9 +527,9 @@
     },
     {
         "id": 37,
-        "title": "Longest Increasing Subsequence",
+        "title": "LeetCode 300: Longest Increasing Subsequence",
         "subtitle": "Mastering the LIS problem with Dynamic Programming and Binary Search optimization.",
-        "slug": "longest-increasing-subsequence",
+        "slug": "leetcode-300-longest-increasing-subsequence",
         "date": "2026-04-25",
         "tags": [
             "algorithms",
