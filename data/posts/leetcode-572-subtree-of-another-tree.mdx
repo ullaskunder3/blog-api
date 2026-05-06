@@ -1,0 +1,255 @@
+---
+title: 'LeetCode 572: Subtree of Another Tree'
+subtitle: Solving the subtree matching problem with a clever serialization trick that beats 93% of submissions.
+id: 39
+date: '2026-05-06'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - trees
+  - string-matching
+  - binary-tree
+  - interview
+prev: 101-binary-search-from-grokking-algorithm
+next: graphics-template
+---
+
+# LeetCode 572: Subtree of Another Tree
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/subtree-of-another-tree/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Have you ever tried to find a smaller picture inside a bigger picture? That's essentially what this problem is — but with **trees** instead of pictures. 🌳
+
+---
+
+## 🧩 The Problem
+
+> Given the roots of two binary trees `root` and `subRoot`, return `true` if there is a subtree of `root` with the same structure and node values of `subRoot` and `false` otherwise.
+
+A subtree of a binary tree is a tree that consists of a node in the tree and **all** of this node's descendants. The tree could also be considered a subtree of itself.
+
+### Examples
+
+**Example 1:**
+```
+root = [3, 4, 5, 1, 2]
+subRoot = [4, 1, 2]
+
+        3               4
+       / \             / \
+      4   5           1   2
+     / \
+    1   2
+
+Output: true ✅
+```
+The subtree rooted at node `4` in `root` matches `subRoot` exactly.
+
+**Example 2:**
+```
+root = [3, 4, 5, 1, 2, null, null, null, null, 0]
+subRoot = [4, 1, 2]
+
+        3               4
+       / \             / \
+      4   5           1   2
+     / \
+    1   2
+       /
+      0
+
+Output: false ❌
+```
+Even though node `4` exists in `root` with children `1` and `2`, node `2` has an extra child `0` — so the structure doesn't match.
+
+### Constraints
+- The number of nodes in the `root` tree is in the range `[1, 2000]`
+- The number of nodes in the `subRoot` tree is in the range `[1, 1000]`
+- `-10⁴ <= root.val <= 10⁴`
+- `-10⁴ <= subRoot.val <= 10⁴`
+
+---
+
+## 🤔 How I Approached This
+
+My first thought was: *"I need to compare two trees — but I have to check every possible starting node in `root`."*
+
+The classic way to solve this is a **recursive DFS** — for each node in `root`, check if the subtree starting there matches `subRoot`. That works, but it can be $O(m \times n)$ in the worst case because you're doing a full tree comparison at each node.
+
+Then I thought: **what if I turn both trees into strings and just check if one string is inside the other?**
+
+That's the **serialization approach** — and it's surprisingly clean.
+
+---
+
+## 💡 The Key Insight: Tree → String
+
+If we convert a tree into a string representation (a **serialization**), then checking "is this subtree present?" becomes a simple **substring search**.
+
+Think of it like this:
+- Convert `root` tree → `"#3 #4 #1 X X #2 X X #5 X X"`
+- Convert `subRoot` tree → `"#4 #1 X X #2 X X"`
+- Now just check: is the second string **inside** the first one? → `sub_str in root_str`
+
+### Why the `#` prefix matters
+
+Without the `#`, we'd have a subtle bug. Consider:
+- A node with value `12` serializes to `12`
+- A node with value `2` serializes to `2`
+- The string `"2"` is found inside `"12"` — **false positive!** 💥
+
+By prefixing every node value with `#`, we get `#12` vs `#2` — no ambiguity.
+
+### Why `X` for null?
+
+We need null markers to preserve the **structure**. Without them, two trees with different shapes but the same values would look identical as strings.
+
+---
+
+## 💻 My Solution
+
+```python
+# Definition for a binary tree node.
+# class TreeNode(object):
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+
+class Solution(object):
+    def isSubtree(self, root, subRoot):
+        """
+        :type root: Optional[TreeNode]
+        :type subRoot: Optional[TreeNode]
+        :rtype: bool
+        """
+        def serialize(node):
+            if not node:
+                return "X"   # null marker
+            return "#" + str(node.val) + " " + serialize(node.left) + " " + serialize(node.right)
+        
+        root_str = serialize(root)
+        sub_str = serialize(subRoot)
+        
+        return sub_str in root_str
+```
+
+### Let's Walk Through It
+
+For **Example 1** (`root = [3,4,5,1,2]`, `subRoot = [4,1,2]`):
+
+**Step 1 — Serialize `root`:**
+```
+serialize(3)
+  = "#3 " + serialize(4) + " " + serialize(5)
+  = "#3 " + "#4 #1 X X #2 X X" + " " + "#5 X X"
+  = "#3 #4 #1 X X #2 X X #5 X X"
+```
+
+**Step 2 — Serialize `subRoot`:**
+```
+serialize(4)
+  = "#4 " + serialize(1) + " " + serialize(2)
+  = "#4 " + "#1 X X" + " " + "#2 X X"
+  = "#4 #1 X X #2 X X"
+```
+
+**Step 3 — Substring check:**
+```
+"#4 #1 X X #2 X X" in "#3 #4 #1 X X #2 X X #5 X X"
+→ True ✅
+```
+
+---
+
+## ⏱️ Complexity Analysis
+
+| | Time | Space |
+| :--- | :--- | :--- |
+| **Serialization** | O(m + n) | O(m + n) |
+| **Substring search** (`in`) | O(m + n)* | O(1) |
+| **Total** | **O(m + n)** | **O(m + n)** |
+
+Where `m` = number of nodes in `root`, `n` = number of nodes in `subRoot`.
+
+> *Python's `in` operator for strings uses an optimized algorithm (a mix of Boyer-Moore and Horspool), so the average case is very fast — often better than $O(m \times n)$.
+
+### Why this beats 93% 🔥
+
+Most people solve this with the **recursive DFS approach** which is $O(m \times n)$ in the worst case. Our serialization approach reduces it to essentially $O(m + n)$ because:
+1. We walk each tree **once** to build the string
+2. We do **one** substring search
+
+```
+Runtime: 16ms — Beats 93.71%
+Memory: 13.67 MB — Beats 39.40%
+```
+
+The memory is slightly higher because we store two full string representations — that's the trade-off for the speed gain.
+
+---
+
+## 🔄 The Classic Alternative: Recursive DFS
+
+For completeness, here's the traditional approach that most solutions use:
+
+```python
+class Solution(object):
+    def isSubtree(self, root, subRoot):
+        def isSameTree(p, q):
+            if not p and not q:
+                return True
+            if not p or not q:
+                return False
+            return (p.val == q.val and 
+                    isSameTree(p.left, q.left) and 
+                    isSameTree(p.right, q.right))
+        
+        if not root:
+            return False
+        if isSameTree(root, subRoot):
+            return True
+        return (self.isSubtree(root.left, subRoot) or 
+                self.isSubtree(root.right, subRoot))
+```
+
+### How this works:
+1. At **every** node in `root`, check if the subtree starting here matches `subRoot` using `isSameTree`
+2. If not, recursively try the left and right children
+
+### Complexity:
+- **Time:** $O(m \times n)$ — for each of the `m` nodes in root, we might compare up to `n` nodes
+- **Space:** $O(h)$ — where `h` is the height of the root tree (recursion stack)
+
+---
+
+## 📊 Comparison: Serialization vs Recursive DFS
+
+| Feature | Serialization (My Approach) | Recursive DFS |
+| :--- | :--- | :--- |
+| **Time** | O(m + n) avg | O(m × n) worst |
+| **Space** | O(m + n) for strings | O(h) recursion stack |
+| **Code Simplicity** | Very clean — 6 lines | More verbose |
+| **Edge Cases** | Handled by `#` prefix + `X` nulls | Need careful null checks |
+| **Interview Impression** | Shows creative thinking 💡 | Shows solid DFS fundamentals |
+
+---
+
+## ⚠️ Common Mistakes
+
+1. **Missing the `#` prefix** — Without it, values like `2` match inside `12`. This is the most common bug with serialization approaches.
+2. **Forgetting null markers** — Without `X` for nulls, `[1, 2]` and `[1, null, 2]` would serialize identically even though they're different trees.
+3. **In the DFS approach: forgetting the base case** — If `root` is `None` but `subRoot` isn't, return `False`. If both are `None`, return `True`.
+
+---
+
+## 🧠 Interview Tips
+
+1. **Start with DFS** — If you're in an interview, start by explaining the recursive approach. It's intuitive and shows you understand tree traversal.
+2. **Then optimize** — Mention the serialization trick as an optimization. Interviewers love when you can think about the same problem in multiple ways.
+3. **Explain the `#` prefix** — If you use serialization, be ready to explain *why* you need the delimiter. This is a common follow-up question.
+4. **Know the trade-off** — Serialization is faster but uses more memory. Be ready to discuss when you'd pick one approach over the other.
+5. **Related problems** — This connects to LeetCode 100 (Same Tree), which is the helper function in the DFS approach. If you've solved that, you're halfway there!

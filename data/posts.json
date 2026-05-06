@@ -554,5 +554,21 @@
             "dsa",
             "interview"
         ]
+    },
+    {
+        "id": 39,
+        "title": "LeetCode 572: Subtree of Another Tree",
+        "subtitle": "Solving the subtree matching problem with a clever serialization trick that beats 93% of submissions.",
+        "slug": "leetcode-572-subtree-of-another-tree",
+        "date": "2026-05-06",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "trees",
+            "string-matching",
+            "binary-tree",
+            "interview"
+        ]
     }
 ]
