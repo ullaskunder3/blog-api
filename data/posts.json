@@ -539,5 +539,20 @@
             "binary-search",
             "interview"
         ]
+    },
+    {
+        "id": 38,
+        "title": "101 Binary Search from grokking algorithm",
+        "subtitle": "Understanding Binary Search from one of the book that I think is good for students",
+        "slug": "101-binary-search-from-grokking-algorithm",
+        "date": "2026-04-26",
+        "tags": [
+            "grokking",
+            "book",
+            "algorithm",
+            "binary-search",
+            "dsa",
+            "interview"
+        ]
     }
 ]

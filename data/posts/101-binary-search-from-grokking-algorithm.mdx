@@ -1,0 +1,231 @@
+---
+title: 101 Binary Search from grokking algorithm
+subtitle: "Understanding Binary Search from one of the book that I think is good for students"
+id: 38
+date: "2026-04-26"
+tag:
+  - grokking
+  - book
+  - algorithm
+  - binary-search
+  - dsa
+  - interview
+prev: leetcode-300-longest-increasing-subsequence
+next: graphics-template
+---
+
+# 101 Binary Search from Grokking Algorithm
+
+UK: Ok we all know and might have played the guessing game right — the number one, not the other one — well let's try the same and we might be able to guess faster.
+
+IN: OK sounds good
+
+UK: I'm thinking of a number between 1 and 100, can you try to guess?
+
+IN: It's going to be harder, is it not?
+
+UK: Well, I can tell you — to make it a little easy — I can notify you whether it's **low**, **high**, or **correct**.
+
+IN: OK let's start. I'll start — is it 1?
+
+UK: NO, too low
+
+IN: OK is it 2?
+
+UK: NO, still too low
+
+IN: OK is it 3?
+
+UK: NO, still too low — OK let's stop now. If you do it like this, it will take probably **n** guesses in the worst case. That's called **linear search** or **simple search**.
+
+IN: Well, is it going to take that much time, is it not?
+
+UK: That's where we introduce our algorithm: **BS** — no not *that* BS — **Binary Search** 😄
+
+IN: What's that? It's a search I can understand, but how is that better than going one after another?
+
+---
+
+## 🎯 The Smarter Way — Binary Search
+
+UK: OK first, let's start with **50** — because I said the number is between 1 and 100, right?
+
+IN: OK, is it 50?
+
+UK: Too high!
+
+IN: So now I know the number is between 1 and 49… hmm, what about 25?
+
+UK: Too low!
+
+IN: So between 26 and 49… let me try 37?
+
+UK: Too high!
+
+IN: 31?
+
+UK: Too low!
+
+IN: 34?
+
+UK: Too high!
+
+IN: 33?
+
+UK: 🎉 **Correct!** And look — you only took **7 guesses** instead of 33!
+
+---
+
+## 🧠 What Just Happened?
+
+With **simple search** (going 1, 2, 3, …), the worst case is **100 guesses** for a number between 1–100.
+
+With **binary search**, we cut the search space **in half** every single time:
+
+| Guess # | Range | Guess | Response |
+| :------ | :---- | :---- | :------- |
+| 1 | 1–100 | 50 | Too high |
+| 2 | 1–49 | 25 | Too low |
+| 3 | 26–49 | 37 | Too high |
+| 4 | 26–36 | 31 | Too low |
+| 5 | 32–36 | 34 | Too high |
+| 6 | 32–33 | 33 | ✅ Correct |
+
+> That's only **7 guesses max** for 100 items. For **1,000,000** items? Only **~20 guesses**. That's the power of **log₂(n)**.
+
+---
+
+## ⚠️ One Important Rule
+
+Binary search only works on a **sorted** list. If the list isn't sorted, you have to sort it first or fall back to simple search.
+
+---
+
+## 📖 Simple Search vs Binary Search
+
+| | Simple Search | Binary Search |
+| :--- | :--- | :--- |
+| **How it works** | Check each item one by one | Divide the search space in half |
+| **Requires sorting?** | No | Yes |
+| **Worst case (100 items)** | 100 steps | 7 steps |
+| **Worst case (4 billion items)** | 4 billion steps | 32 steps |
+| **Big O** | O(n) | O(log n) |
+
+---
+
+## 💻 The Code
+
+### Python
+
+```python
+def binary_search(lst, target):
+    low = 0
+    high = len(lst) - 1
+
+    while low <= high:
+        mid = (low + high) // 2
+        guess = lst[mid]
+
+        if guess == target:
+            return mid        # Found it!
+        elif guess > target:
+            high = mid - 1    # Too high — search left half
+        else:
+            low = mid + 1     # Too low — search right half
+
+    return None  # Item not in list
+
+# Test it
+my_list = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+
+print(binary_search(my_list, 7))   # → 3  (index 3)
+print(binary_search(my_list, 12))  # → None (not found)
+```
+
+### JavaScript
+
+```javascript
+function binarySearch(arr, target) {
+  let low = 0;
+  let high = arr.length - 1;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const guess = arr[mid];
+
+    if (guess === target) {
+      return mid;         // Found it!
+    } else if (guess > target) {
+      high = mid - 1;     // Too high — search left half
+    } else {
+      low = mid + 1;      // Too low — search right half
+    }
+  }
+
+  return null; // Item not in list
+}
+
+// Test it
+const myList = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+console.log(binarySearch(myList, 7));   // → 3
+console.log(binarySearch(myList, 12));  // → null
+```
+
+---
+
+## 🔍 Step-by-step Walkthrough
+
+Let's trace through `binary_search([1, 3, 5, 7, 9], 7)`:
+
+| Step | low | high | mid | guess | Action |
+| :--- | :-- | :--- | :-- | :---- | :----- |
+| 1 | 0 | 4 | 2 | 5 | 5 < 7 → search right |
+| 2 | 3 | 4 | 3 | 7 | 7 == 7 → ✅ Found at index 3 |
+
+Only **2 steps** to find the target in a list of 5 items!
+
+---
+
+## ⏱️ Big O — Running Time
+
+From the Grokking Algorithms book:
+
+- **Simple search:** O(n) — linear time. If the list has 100 items, it could take up to 100 guesses.
+- **Binary search:** O(log n) — logarithmic time. If the list has 100 items, it takes at most 7 guesses.
+
+### What does O(log n) actually mean?
+
+| List Size | Simple Search (worst case) | Binary Search (worst case) |
+| :-------- | :------------------------- | :------------------------- |
+| 100 | 100 | 7 |
+| 1,000 | 1,000 | 10 |
+| 1,000,000 | 1,000,000 | 20 |
+| 4,000,000,000 | 4,000,000,000 | 32 |
+
+> Every time the list **doubles**, binary search only needs **one more guess**. That's why it scales so insanely well.
+
+---
+
+## 🧩 Common Mistakes
+
+1. **Forgetting the list must be sorted** — binary search on an unsorted array gives wrong results
+2. **Off-by-one errors** — make sure you use `low <= high` (not `<`), and update `high = mid - 1` and `low = mid + 1` (not `mid`)
+3. **Integer overflow** — in some languages `(low + high)` can overflow. A safer formula: `mid = low + (high - low) // 2`
+
+---
+
+## 🧠 Interview Tips
+
+1. **Always confirm** — "Is the input sorted?" If not, mention that sorting is O(n log n) and factor that in
+2. **Know both** — Simple search and binary search. Interviewers love asking "what if the list isn't sorted?"
+3. **Practice variants** — Binary search shows up in many problems: finding insertion point, first/last occurrence, rotated arrays, etc.
+4. **Explain the halving** — The interviewer wants to hear *"we eliminate half the search space each time, so it's O(log n)"*
+
+---
+
+## 📚 From the Book
+
+This is from **Chapter 1** of [Grokking Algorithms](https://www.manning.com/books/grokking-algorithms) by Aditya Bhargava. It's one of the best beginner-friendly algorithm books out there — illustrated, fun, and to the point. If you're a student learning DSA, I'd highly recommend starting here.
+
+> "An algorithm is a set of instructions for accomplishing a task." — Grokking Algorithms
