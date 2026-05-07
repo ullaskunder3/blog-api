@@ -570,5 +570,21 @@
             "binary-tree",
             "interview"
         ]
+    },
+    {
+        "id": 40,
+        "title": "LeetCode 73: Set Matrix Zeroes",
+        "subtitle": "Master the O(1) space trick: using the matrix itself as storage to zero out rows and columns.",
+        "slug": "leetcode-73-set-matrix-zeroes",
+        "date": "2026-05-07",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "matrix",
+            "array",
+            "in-place",
+            "interview"
+        ]
     }
 ]

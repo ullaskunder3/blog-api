@@ -1,0 +1,412 @@
+---
+title: 'LeetCode 73: Set Matrix Zeroes'
+subtitle: 'Master the O(1) space trick: using the matrix itself as storage to zero out rows and columns.'
+id: 40
+date: '2026-05-07'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - matrix
+  - array
+  - in-place
+  - interview
+prev: leetcode-572-subtree-of-another-tree
+next: graphics-template
+---
+
+# LeetCode 73: Set Matrix Zeroes
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/set-matrix-zeroes/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Imagine you're playing Minesweeper — you click a cell, and suddenly an entire row and column light up. That's the visual for this problem. When a `0` is found, its whole row and column must become `0`. Sounds simple, but the **real challenge** is doing it without extra space. 💥
+
+---
+
+## 🧩 The Problem
+
+> Given an `m × n` integer matrix, if an element is `0`, set its **entire row and column** to `0`s.
+>
+> You must do it **in place**.
+
+### Examples
+
+**Example 1:**
+```
+Input:                   Output:
+┌───┬───┬───┐           ┌───┬───┬───┐
+│ 1 │ 1 │ 1 │           │ 1 │ 0 │ 1 │
+├───┼───┼───┤           ├───┼───┼───┤
+│ 1 │ 0 │ 1 │    →      │ 0 │ 0 │ 0 │
+├───┼───┼───┤           ├───┼───┼───┤
+│ 1 │ 1 │ 1 │           │ 1 │ 0 │ 1 │
+└───┴───┴───┘           └───┴───┴───┘
+```
+The `0` at position `(1,1)` wipes out row 1 and column 1.
+
+**Example 2:**
+```
+Input:                          Output:
+┌───┬───┬───┬───┐              ┌───┬───┬───┬───┐
+│ 0 │ 1 │ 2 │ 0 │              │ 0 │ 0 │ 0 │ 0 │
+├───┼───┼───┼───┤              ├───┼───┼───┼───┤
+│ 3 │ 4 │ 5 │ 2 │      →       │ 0 │ 4 │ 5 │ 0 │
+├───┼───┼───┼───┤              ├───┼───┼───┼───┤
+│ 1 │ 3 │ 1 │ 5 │              │ 0 │ 3 │ 1 │ 0 │
+└───┴───┴───┴───┘              └───┴───┴───┴───┘
+```
+Two `0`s at `(0,0)` and `(0,3)` — row 0 is fully zeroed, columns 0 and 3 are fully zeroed.
+
+### Constraints
+- `m == matrix.length`
+- `n == matrix[0].length`
+- `1 <= m, n <= 200`
+- `-2³¹ <= matrix[i][j] <= 2³¹ - 1`
+
+---
+
+## Step 1 — Start with the obvious solution
+
+If you see a `0` at `(i, j)`:
+- **row i** must become all `0`s
+- **column j** must become all `0`s
+
+So the most natural idea is:
+
+```python
+rows = set()
+cols = set()
+```
+
+**First pass** — scan and record:
+```
+whenever matrix[i][j] == 0:
+    add i to rows
+    add j to cols
+```
+
+**Second pass** — apply:
+```
+if row in rows OR col in cols:
+    make it 0
+```
+
+```python
+class Solution(object):
+    def setZeroes(self, matrix):
+        m, n = len(matrix), len(matrix[0])
+        rows = set()
+        cols = set()
+
+        for i in range(m):
+            for j in range(n):
+                if matrix[i][j] == 0:
+                    rows.add(i)
+                    cols.add(j)
+
+        for i in range(m):
+            for j in range(n):
+                if i in rows or j in cols:
+                    matrix[i][j] = 0
+```
+
+That gives:
+- **Time:** O(m × n)
+- **Space:** O(m + n) — for the two sets
+
+This is already good. ✅
+
+---
+
+## Step 2 — Interview follow-up: can we do O(1) space?
+
+Now comes the trick.
+
+Instead of extra arrays/sets… **use the matrix itself as storage.**
+
+### 💡 The Core Insight
+
+The **first row** can store → *which columns should become zero*
+
+The **first column** can store → *which rows should become zero*
+
+Let's see it with Example 1:
+
+```
+Original:          After marking:
+┌───┬───┬───┐     ┌───┬─0─┬───┐   ← first row stores column markers
+│ 1 │ 1 │ 1 │     │ 1 │ 0 │ 1 │
+├───┼───┼───┤     ├───┼───┼───┤
+│ 1 │ 0 │ 1 │     │ 0 │ 0 │ 1 │   ← first col stores row markers
+├───┼───┼───┤     ├───┼───┼───┤
+│ 1 │ 1 │ 1 │     │ 1 │ 1 │ 1 │
+└───┴───┴───┘     └───┴───┴───┘
+```
+
+When we find `matrix[1][1] == 0`:
+- Mark **row 1**: `matrix[1][0] = 0`
+- Mark **column 1**: `matrix[0][1] = 0`
+
+Now the first row/column act like markers. Smart, right?
+
+### ⚠️ But there's a problem…
+
+What if the **first row itself** originally had a zero? Or the **first column**?
+
+Because we're repurposing them as marker storage, we would **lose that information**.
+
+So we separately store:
+```python
+firstRowZero = False
+firstColZero = False
+```
+
+Two booleans. That's it. Still O(1) space. 🎯
+
+---
+
+## 🧠 Full Thinking Process
+
+### Pass 1 — Protect the first row & column
+
+Determine:
+- Should the first **row** become zero?
+- Should the first **column** become zero?
+
+### Pass 2 — Mark using inner cells
+
+For every **inner cell** `(i, j)` where `i >= 1` and `j >= 1`:
+
+If it's zero → mark its row and column:
+```
+matrix[i][0] = 0    ← mark the row
+matrix[0][j] = 0    ← mark the column
+```
+
+### Pass 3 — Zero inner cells using markers
+
+If `matrix[i][0] == 0` OR `matrix[0][j] == 0` → zero it out:
+```
+matrix[i][j] = 0
+```
+
+### Pass 4 — Handle first row/column last
+
+Apply the saved booleans to zero them out **if needed**.
+
+> ⚠️ **Order matters!** We must handle the first row/column **last**, otherwise we'd corrupt the markers before using them.
+
+---
+
+## 💻 Final Solution (O(1) Space)
+
+```python
+class Solution(object):
+    def setZeroes(self, matrix):
+        """
+        :type matrix: List[List[int]]
+        :rtype: None Do not return anything, modify matrix in-place instead.
+        """
+        m = len(matrix)
+        n = len(matrix[0])
+
+        firstRowZero = False
+        firstColZero = False
+
+        # Pass 1: Check if first row has any zero
+        for j in range(n):
+            if matrix[0][j] == 0:
+                firstRowZero = True
+
+        # Pass 1: Check if first column has any zero
+        for i in range(m):
+            if matrix[i][0] == 0:
+                firstColZero = True
+
+        # Pass 2: Use first row/column as markers
+        for i in range(1, m):
+            for j in range(1, n):
+                if matrix[i][j] == 0:
+                    matrix[i][0] = 0
+                    matrix[0][j] = 0
+
+        # Pass 3: Zero inner cells based on markers
+        for i in range(1, m):
+            for j in range(1, n):
+                if matrix[i][0] == 0 or matrix[0][j] == 0:
+                    matrix[i][j] = 0
+
+        # Pass 4: Zero first row if needed
+        if firstRowZero:
+            for j in range(n):
+                matrix[0][j] = 0
+
+        # Pass 4: Zero first column if needed
+        if firstColZero:
+            for i in range(m):
+                matrix[i][0] = 0
+```
+
+---
+
+## 🔍 Let's Walk Through Example 2
+
+Input: `[[0,1,2,0],[3,4,5,2],[1,3,1,5]]`
+
+**Pass 1 — Check first row & column:**
+```
+First row: [0, 1, 2, 0]  → has zero → firstRowZero = True
+First col: [0, 3, 1]     → has zero → firstColZero = True
+```
+
+**Pass 2 — Scan inner cells (i≥1, j≥1):**
+```
+All inner cells are non-zero → no markers added
+```
+
+**Pass 3 — Zero inner cells:**
+```
+No markers were set by inner cells, so no inner cells change.
+```
+
+**Pass 4 — Handle first row/column:**
+```
+firstRowZero = True  → zero out entire first row
+firstColZero = True  → zero out entire first column
+```
+
+**Result:**
+```
+┌───┬───┬───┬───┐
+│ 0 │ 0 │ 0 │ 0 │   ← first row zeroed
+├───┼───┼───┼───┤
+│ 0 │ 4 │ 5 │ 2 │   ← first col zeroed
+├───┼───┼───┼───┤
+│ 0 │ 3 │ 1 │ 5 │   ← first col zeroed
+└───┴───┴───┴───┘
+```
+
+Wait — but the expected output has `(1,3)` and `(2,3)` as `0` too!
+
+That's because the **original** `matrix[0][3] == 0` — it's in the first row. Let's re-trace:
+
+**Pass 2 — revisited:** Inner cells scan from `(1,1)` to `(2,3)`. None of them are `0`. But the first row already has a `0` at column 3.
+
+**Pass 4 — firstRowZero:** We zero out `matrix[0][0..3]` — all become `0`. But column 3 marker `matrix[0][3]` was already `0` from the original input!
+
+Actually, the key here: `matrix[0][3] == 0` was already there. During Pass 3 we check `matrix[0][j]` — and `matrix[0][3] == 0` means column 3 should be zeroed for inner cells.
+
+Re-tracing **Pass 3** properly:
+```
+(1,3): matrix[1][0]=3≠0, matrix[0][3]=0 → zero it!  matrix[1][3] = 0
+(2,3): matrix[2][0]=1≠0, matrix[0][3]=0 → zero it!  matrix[2][3] = 0
+```
+
+**Final result:**
+```
+┌───┬───┬───┬───┐
+│ 0 │ 0 │ 0 │ 0 │
+├───┼───┼───┼───┤
+│ 0 │ 4 │ 5 │ 0 │
+├───┼───┼───┼───┤
+│ 0 │ 3 │ 1 │ 0 │
+└───┴───┴───┴───┘
+```
+
+Matches expected output ✅
+
+---
+
+## ⏱️ Complexity Analysis
+
+| Approach | Time | Space |
+| :--- | :--- | :--- |
+| **Naive (extra sets)** | O(m × n) | O(m + n) |
+| **Optimal (in-place markers)** | O(m × n) | **O(1)** ✅ |
+
+Both approaches scan every cell at least once (unavoidable), so time is always O(m × n). The difference is purely in space.
+
+---
+
+## 📊 Comparison: O(m+n) vs O(1) Space
+
+| Feature | Set-based (O(m+n)) | In-place markers (O(1)) |
+| :--- | :--- | :--- |
+| **Space** | O(m + n) | O(1) — just 2 booleans |
+| **Code simplicity** | Straightforward | Needs careful ordering |
+| **Edge cases** | Simple | First row/col need special handling |
+| **Interview impression** | Good starting point | Shows deep thinking 💡 |
+
+---
+
+## ⚠️ Common Mistakes
+
+1. **Zeroing the first row/column too early** — If you handle them in Pass 3 instead of Pass 4, you'll corrupt the markers and get wrong answers. The order is critical.
+
+2. **Forgetting to scan the first row/column separately** — The inner loop starts at `(1,1)`, so the first row and column aren't covered by the marking phase. That's why we need `firstRowZero` and `firstColZero`.
+
+3. **Modifying while scanning** — If you zero cells during the same pass you're scanning for zeros, you'll create "cascading zeros" that weren't in the original matrix. Always separate the scan phase from the modify phase.
+
+4. **Starting inner loops at 0 instead of 1** — The inner marking and zeroing loops must start at index `1`, not `0`. Starting at `0` would overwrite the markers themselves.
+
+---
+
+## 🧠 How to Learn to Think Like This
+
+For matrix problems, ask yourself:
+
+### 1. What information do I need later?
+
+Here:
+- Which **rows** need to be killed
+- Which **columns** need to be killed
+
+### 2. Can existing input store that info?
+
+This is the big interview trick — **reuse the matrix itself**.
+
+Common in:
+- Matrix problems
+- Linked list problems (e.g., marking visited nodes)
+- Array problems (e.g., using negative values as flags)
+
+### 3. What special cases break the trick?
+
+Here:
+- The **first row** — because we're using it as column storage
+- The **first column** — because we're using it as row storage
+
+So we protect them with two booleans.
+
+---
+
+## 🔑 Pattern to Remember
+
+> **"Use first row/column as state storage"**
+
+This is a classic in-place trick. You'll see variations of it in:
+- This problem (Set Matrix Zeroes)
+- Game of Life (LeetCode 289)
+- Any problem asking "modify in-place with O(1) extra space"
+
+The general pattern:
+1. **Protect** — save special-case info separately
+2. **Mark** — use existing structure as storage
+3. **Apply** — use marks to make changes
+4. **Restore** — handle the special cases last
+
+---
+
+## 🎯 Interview Tips
+
+1. **Start with the O(m+n) solution** — Show you understand the problem first. Use sets to track rows and columns. It's clean and correct.
+
+2. **Then optimize** — When the interviewer asks "can you do better on space?", pivot to the in-place marker approach. This is where you shine.
+
+3. **Explain the ordering** — The most common follow-up is "why do you handle the first row/column last?" Be ready to explain that doing it early would corrupt your markers.
+
+4. **Draw it out** — This problem is much easier to explain with a visual. Sketch the matrix on the whiteboard and show the marking step.
+
+5. **Know the trade-off** — Both solutions are O(m×n) time. The only difference is space. Make sure to articulate *why* the in-place approach is better in memory-constrained environments.
