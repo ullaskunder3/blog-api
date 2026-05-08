@@ -586,5 +586,22 @@
             "in-place",
             "interview"
         ]
+    },
+    {
+        "id": 41,
+        "title": "LeetCode 207: Course Schedule",
+        "subtitle": "Detect cycles in directed graphs using DFS and BFS Topological Sort (Kahn's Algorithm).",
+        "slug": "leetcode-207-course-schedule",
+        "date": "2026-05-08",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "graph",
+            "topological-sort",
+            "bfs",
+            "dfs",
+            "interview"
+        ]
     }
 ]

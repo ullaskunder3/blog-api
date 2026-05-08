@@ -1,0 +1,424 @@
+---
+title: 'LeetCode 207: Course Schedule'
+subtitle: Detect cycles in directed graphs using DFS and BFS Topological Sort (Kahn's Algorithm).
+id: 41
+date: '2026-05-08'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - graph
+  - topological-sort
+  - bfs
+  - dfs
+  - interview
+prev: leetcode-73-set-matrix-zeroes
+next: graphics-template
+---
+
+# LeetCode 207: Course Schedule
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/course-schedule/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Imagine you're registering for college courses — but some courses require you to finish others first. Can you actually graduate, or are you stuck in an infinite prerequisite loop? That's exactly what this problem asks. 🎓
+
+## 🧩 The Problem
+
+> There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [aᵢ, bᵢ]` indicates that you must take course `bᵢ` first if you want to take course `aᵢ`.
+>
+> Return `true` if you can finish all courses. Otherwise, return `false`.
+
+### Examples
+
+**Example 1:**
+```
+Input: numCourses = 2, prerequisites = [[1,0]]
+Output: true
+
+Course 0 ──→ Course 1
+
+To take course 1, finish course 0 first.
+So it is possible. ✅
+```
+
+**Example 2:**
+```
+Input: numCourses = 2, prerequisites = [[1,0],[0,1]]
+Output: false
+
+Course 0 ──→ Course 1
+    ↑            │
+    └────────────┘
+
+To take course 1, you need course 0.
+To take course 0, you need course 1.
+Impossible loop! ❌
+```
+
+### Constraints
+- `1 <= numCourses <= 2000`
+- `0 <= prerequisites.length <= 5000`
+- `prerequisites[i].length == 2`
+- `0 <= aᵢ, bᵢ < numCourses`
+- All the pairs `prerequisites[i]` are unique.
+
+## 🧠 How to Think About This
+
+This problem is really about **detecting a cycle in a directed graph.**
+
+Think of it this way:
+- Each **course** = a **node**
+- `[a, b]` means: to take `a`, you need `b` first → so `b ──→ a`
+- If there is a **cycle**, you can never finish
+
+### Even simpler mental model
+
+Imagine courses as tasks:
+
+```
+Wash dishes → Cook food → Eat
+```
+
+Valid. ✅
+
+But:
+
+```
+Cook → Eat → Cook
+```
+
+Impossible loop. ❌
+
+That's exactly what this problem asks.
+
+## Step 1 — Convert into a Graph
+
+```
+numCourses = 4
+prerequisites = [[1,0],[2,1],[3,2]]
+```
+
+Meaning:
+
+```
+0 → 1 → 2 → 3
+```
+
+Possible. ✅
+
+We build an adjacency list:
+
+```python
+graph = {
+    0: [1],
+    1: [2],
+    2: [3],
+    3: []
+}
+```
+
+## Step 2 — What Are We Actually Checking?
+
+We need to know:
+
+> "Can I start from any course and eventually come back to it?"
+
+That is **cycle detection** in a directed graph.
+
+## Step 3 — DFS Cycle Detection
+
+While DFS runs, each node can be in one of **3 states**:
+
+| State | Meaning |
+| :--- | :--- |
+| **0 — Unvisited** | We haven't seen this node yet |
+| **1 — Visiting** | Currently in the recursion stack (being explored right now) |
+| **2 — Visited** | Already fully processed — safe ✅ |
+
+### 💡 Key Insight
+
+If during DFS we reach a node already in **"visiting"** state:
+
+```
+A → B → C → A  ← visiting again!
+```
+
+We found a **cycle**. Return `False`.
+
+### Visual Walkthrough
+
+```
+prerequisites = [[1,0],[0,1]]
+
+Graph:
+  0 → 1
+  1 → 0
+```
+
+DFS:
+```
+visit 0         → state[0] = 1 (visiting)
+  visit 1       → state[1] = 1 (visiting)
+    visit 0     → state[0] == 1 already!
+                → CYCLE DETECTED ❌
+```
+
+## 💻 DFS Solution
+
+```python
+class Solution(object):
+    def canFinish(self, numCourses, prerequisites):
+
+        # build graph
+        graph = {i: [] for i in range(numCourses)}
+
+        for course, prereq in prerequisites:
+            graph[prereq].append(course)
+
+        # 0 = unvisited
+        # 1 = visiting
+        # 2 = visited
+        state = [0] * numCourses
+
+        def dfs(course):
+
+            # cycle found
+            if state[course] == 1:
+                return False
+
+            # already checked
+            if state[course] == 2:
+                return True
+
+            # mark visiting
+            state[course] = 1
+
+            for neighbor in graph[course]:
+                if not dfs(neighbor):
+                    return False
+
+            # mark visited
+            state[course] = 2
+
+            return True
+
+        # check every course
+        for course in range(numCourses):
+            if not dfs(course):
+                return False
+
+        return True
+```
+
+### Complexity
+- **Time:** O(V + E)
+- **Space:** O(V + E)
+
+Where V = numCourses, E = number of prerequisites.
+
+## Step 4 — Can We Do Better?
+
+The DFS solution is elegant, but there's an even **cleaner** and more **interview-friendly** approach: **BFS Topological Sort (Kahn's Algorithm)**.
+
+Instead of detecting cycles directly with DFS, we:
+
+1. **Count** how many prerequisites each course has (**indegree**)
+2. **Start** with courses having 0 prerequisites
+3. **Remove** them one by one
+4. **Reduce** dependency counts of neighbors
+5. If we can process **all** courses → possible ✅
+6. If some remain stuck → **cycle exists** ❌
+
+### Why this is nice
+
+- No recursion → no stack overflow risk
+- Easier to reason about in interviews
+- Directly models the "take courses in order" intuition
+
+## 🔍 BFS Walkthrough
+
+### Example — No cycle:
+
+```
+numCourses = 4
+prerequisites = [[1,0],[2,0],[3,1],[3,2]]
+
+Graph:
+  0 → 1
+  0 → 2
+  1 → 3
+  2 → 3
+```
+
+**Indegree table:**
+```
+Course 0 : 0  ← no prerequisites
+Course 1 : 1
+Course 2 : 1
+Course 3 : 2
+```
+
+**Process:**
+```
+Queue: [0]          ← start with indegree 0
+
+Take 0:
+  → 1 indegree becomes 0  → add to queue
+  → 2 indegree becomes 0  → add to queue
+  completed = 1
+
+Queue: [1, 2]
+
+Take 1:
+  → 3 indegree becomes 1
+  completed = 2
+
+Take 2:
+  → 3 indegree becomes 0  → add to queue
+  completed = 3
+
+Queue: [3]
+
+Take 3:
+  completed = 4
+
+completed (4) == numCourses (4) → True ✅
+```
+
+### Example — Cycle exists:
+
+```
+prerequisites = [[1,0],[0,1]]
+
+Indegree:
+  Course 0 : 1
+  Course 1 : 1
+
+No node has indegree 0!
+Queue starts empty.
+We cannot begin.
+
+completed (0) != numCourses (2) → False ❌
+```
+
+## 💻 Optimal Solution (BFS / Kahn's Algorithm)
+
+```python
+from collections import deque
+
+class Solution(object):
+    def canFinish(self, numCourses, prerequisites):
+        """
+        :type numCourses: int
+        :type prerequisites: List[List[int]]
+        :rtype: bool
+        """
+        # adjacency list
+        graph = [[] for _ in range(numCourses)]
+
+        # indegree[i] = number of prerequisites for i
+        indegree = [0] * numCourses
+
+        # build graph
+        for course, prereq in prerequisites:
+            graph[prereq].append(course)
+            indegree[course] += 1
+
+        # courses with no prerequisites
+        queue = deque()
+
+        for i in range(numCourses):
+            if indegree[i] == 0:
+                queue.append(i)
+
+        completed = 0
+
+        while queue:
+
+            course = queue.popleft()
+            completed += 1
+
+            for neighbor in graph[course]:
+                indegree[neighbor] -= 1
+
+                if indegree[neighbor] == 0:
+                    queue.append(neighbor)
+
+        return completed == numCourses
+```
+
+### Results
+```
+Runtime:  4 ms   — Beats 89.79%
+Memory:   13.09 MB — Beats 93.22%
+```
+
+## ⏱️ Complexity Analysis
+
+| Approach | Time | Space |
+| :--- | :--- | :--- |
+| **DFS Cycle Detection** | O(V + E) | O(V + E) |
+| **BFS Topological Sort** | O(V + E) | O(V + E) |
+
+Both are optimal for graph traversal. The difference is in **style**, not performance.
+
+## 📊 Comparison: DFS vs BFS
+
+| Feature | DFS Cycle Detection | BFS Topological Sort |
+| :--- | :--- | :--- |
+| **Approach** | Recursion + 3-state marking | Queue + indegree counting |
+| **Cycle detection** | Finds "visiting" node again | Can't process all nodes |
+| **Recursion risk** | Deep recursion on large graphs | Iterative — no stack overflow |
+| **Code simplicity** | Elegant and compact | Slightly more setup |
+| **Interview preference** | Great for DFS questions | Often preferred — cleaner logic |
+| **Best for** | Understanding recursion/cycles | Interviews + production |
+
+## ⚠️ Common Mistakes
+
+1. **Building the graph in the wrong direction** — `[a, b]` means `b` is a prerequisite for `a`, so the edge goes `b → a`. Reversing this breaks everything.
+
+2. **Not checking all nodes** — In DFS, you must start from every unvisited node (not just node 0). Disconnected components can hide cycles.
+
+3. **Using only 2 states in DFS** — Without the 3-state system (unvisited / visiting / visited), you can't distinguish between a cycle and a cross-edge. This is the most common DFS bug.
+
+4. **Forgetting `deque` in BFS** — Using a list with `pop(0)` is O(n). Always use `collections.deque` for O(1) popleft.
+
+## 🧠 How to Recognize This Pattern
+
+When you see these keywords in an interview:
+
+- **prerequisites**
+- **dependencies**
+- **ordering**
+- **"can finish all"**
+- **"possible to complete"**
+- **scheduling**
+- **build order**
+- **package installation**
+
+Think:
+
+> **GRAPH + TOPOLOGICAL SORT / CYCLE DETECTION**
+
+## 🎯 Tiny Trick to Remember Kahn's Algorithm
+
+1. Take all nodes with **0 dependencies**
+2. Remove them
+3. Repeat
+4. If something can **never become 0** → cycle exists
+
+That's the entire algorithm in 4 lines. 🎉
+
+## 🎯 Interview Tips
+
+1. **Start with DFS** — Show you understand cycle detection and recursion. Explain the 3-state system clearly.
+
+2. **Then offer BFS** — "There's also a cleaner BFS approach using Kahn's algorithm..." Interviewers love seeing you know multiple approaches.
+
+3. **Draw the graph** — Sketch the dependency graph on the whiteboard. It makes the cycle immediately visible.
+
+4. **Mention the pattern** — "This is a classic topological sort problem" signals you recognize the category instantly.
+
+5. **Know the follow-ups** — LeetCode 210 (Course Schedule II) asks you to return the actual ordering, not just true/false. The BFS approach naturally gives you the topological order.
