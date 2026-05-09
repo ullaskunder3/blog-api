@@ -607,7 +607,7 @@
     {
         "id": 42,
         "title": "LeetCode 217: Contains Duplicate",
-        "subtitle": "",
+        "subtitle": "Efficiently detect duplicates in an array using Hash Sets and Sorting.",
         "slug": "leetcode-217-contains-duplicate",
         "date": "2026-05-09",
         "tags": [
@@ -622,7 +622,7 @@
     {
         "id": 43,
         "title": "LeetCode 297: Serialize and Deserialize Binary Tree",
-        "subtitle": "",
+        "subtitle": "Convert a binary tree into a string and back again using Preorder DFS.",
         "slug": "leetcode-297-serialize-and-deserialize-binary-tree",
         "date": "2026-05-09",
         "tags": [
