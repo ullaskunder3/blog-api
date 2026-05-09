@@ -1,0 +1,152 @@
+---
+title: 'LeetCode 217: Contains Duplicate'
+subtitle: Efficiently detect duplicates in an array using Hash Sets and Sorting.
+id: 42
+date: '2026-05-09'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - array
+  - hash-table
+  - interview
+prev: leetcode-207-course-schedule
+next: leetcode-297-serialize-and-deserialize-binary-tree
+---
+
+# LeetCode 217: Contains Duplicate
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/contains-duplicate/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Have you ever looked at a list of names and wondered if someone's name appears twice? Maybe you're checking a guest list for a party or a list of IDs in a database. That's exactly what this problem asks us to do with an array of integers. 🧐
+
+## 🧩 The Problem
+
+> Given an integer array `nums`, return `true` if any value appears **at least twice** in the array, and return `false` if every element is distinct.
+
+### Examples
+
+**Example 1:**
+```
+Input: nums = [1,2,3,1]
+Output: true
+
+Explanation: The element 1 occurs at indices 0 and 3. ✅
+```
+
+**Example 2:**
+```
+Input: nums = [1,2,3,4]
+Output: false
+
+Explanation: All elements are distinct. ❌
+```
+
+**Example 3:**
+```
+Input: nums = [1,1,1,3,3,4,3,2,4,2]
+Output: true
+```
+
+### Constraints
+- `1 <= nums.length <= 10^5`
+- `-10^9 <= nums[i] <= 10^9`
+
+## 🧠 How to Think About This
+
+We need to check if there are any repeating numbers. There are three common ways to solve this, each with its own trade-offs:
+
+### 1. Brute Force (Check everything)
+Compare every pair of numbers. 
+- **Logic:** For each number, look at every other number.
+- **Time:** $O(n^2)$ — Too slow for large arrays. 🐢
+- **Space:** $O(1)$.
+
+### 2. Sorting (Order them up)
+If we sort the array, any duplicates will be right next to each other.
+- **Logic:** Sort `[1, 3, 2, 1]` → `[1, 1, 2, 3]`. Now check if `nums[i] == nums[i+1]`.
+- **Time:** $O(n \log n)$ — Pretty good! 🏎️
+- **Space:** $O(1)$ or $O(n)$ depending on the sorting algorithm.
+
+### 3. Hash Set (The Memory Trick)
+Use a "notebook" (Set) to remember numbers we've seen.
+- **Logic:** As we walk through the array, check if the current number is in our set. If it is, we found a duplicate! If not, add it to the set and move on.
+- **Time:** $O(n)$ — Optimal! 🚀
+- **Space:** $O(n)$ — We need extra memory for the set.
+
+## 🔍 Visualizing the Hash Set Approach
+
+```
+nums = [1, 2, 3, 1]
+seen = set()
+
+1. Current: 1 | Is 1 in seen? No. | Add 1 to seen → {1}
+2. Current: 2 | Is 2 in seen? No. | Add 2 to seen → {1, 2}
+3. Current: 3 | Is 3 in seen? No. | Add 3 to seen → {1, 2, 3}
+4. Current: 1 | Is 1 in seen? YES! | Return True 🎉
+```
+
+## 💻 Solution (Hash Set)
+
+```python
+class Solution(object):
+    def containsDuplicate(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: bool
+        """
+        # We use a set for O(1) average time complexity lookups
+        seen = set()
+        
+        for num in nums:
+            # If we've seen this number before, we found a duplicate
+            if num in seen:
+                return True
+            # Otherwise, record that we've seen it
+            seen.add(num)
+            
+        # If we finish the loop, all numbers are unique
+        return False
+```
+
+### Results
+```
+Runtime: 17 ms    — Beats 66.43%
+Memory: 25.73 MB  — Beats 77.93%
+```
+
+## ⏱️ Complexity Analysis
+
+| Approach | Time Complexity | Space Complexity |
+| :--- | :--- | :--- |
+| **Brute Force** | $O(n^2)$ | $O(1)$ |
+| **Sorting** | $O(n \log n)$ | $O(1)$ or $O(n)$ |
+| **Hash Set** | $O(n)$ | $O(n)$ |
+
+The **Hash Set** approach is generally preferred in interviews because it gives us the best time complexity, and $O(n)$ space is usually acceptable.
+
+## ⚠️ Common Mistakes
+
+1. **Using a List instead of a Set** — If you do `seen = []` and `if num in seen:`, the lookup becomes $O(n)$, making your total time complexity $O(n^2)$. Always use a Set for $O(1)$ lookups!
+2. **Returning too early** — Make sure you only return `False` *after* the entire loop finishes.
+3. **Overcomplicating with a Hash Map** — You don't need to count the frequencies; just knowing if it exists once is enough. A Set is cleaner than a Map/Dictionary here.
+
+## 🧠 How to Recognize This Pattern
+
+When you see these keywords in an interview:
+- **"at least twice"**
+- **"distinct"**
+- **"duplicate"**
+- **"unique"**
+
+Think:
+> **HASH SET or SORTING**
+
+## 🎯 Interview Tips
+
+1. **Mention the Trade-offs** — "I can solve this in $O(n \log n)$ time with $O(1)$ space using sorting, or $O(n)$ time with $O(n)$ space using a hash set. Which would you prefer?"
+2. **One-liner Trick** — In Python, you can also solve this in one line: `return len(nums) != len(set(nums))`. However, the loop approach is often better because it can **early return** as soon as it finds the first duplicate!
+3. **Constraints Matter** — If the array is very large and memory is tight, sorting might be better than a hash set.
+4. **Explain the Set** — Briefly explain why a set is fast ($O(1)$ average time for searching).

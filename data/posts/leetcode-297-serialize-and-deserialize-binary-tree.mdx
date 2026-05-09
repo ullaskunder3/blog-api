@@ -1,0 +1,191 @@
+---
+title: 'LeetCode 297: Serialize and Deserialize Binary Tree'
+subtitle: Convert a binary tree into a string and back again using Preorder DFS.
+id: 43
+date: '2026-05-09'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - tree
+  - dfs
+  - design
+  - binary-tree
+  - interview
+prev: leetcode-217-contains-duplicate
+next: graphics-template
+---
+
+# LeetCode 297: Serialize and Deserialize Binary Tree
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Imagine you're playing a complex video game and you want to save your progress. The game needs to take all those 3D objects, character stats, and world states (the "tree") and flatten them into a single file (the "string") so you can load it back later. That's exactly what **Serialization** and **Deserialization** are all about. 💾
+
+## 🧩 The Problem
+
+> Serialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection.
+>
+> Design an algorithm to serialize and deserialize a binary tree. There is no restriction on how your algorithm works; you just need to ensure that a binary tree can be reconstructed to its original structure.
+
+### Examples
+
+**Example 1:**
+```
+Input: root = [1,2,3,null,null,4,5]
+Output: [1,2,3,null,null,4,5]
+
+      1
+     / \
+    2   3
+       / \
+      4   5
+```
+
+**Example 2:**
+```
+Input: root = []
+Output: []
+```
+
+### Constraints
+- The number of nodes in the tree is in the range `[0, 10^4]`.
+- `-1000 <= Node.val <= 1000`.
+
+## 🧠 How to Think About This
+
+The core challenge is turning a 2D structure (a tree) into a 1D sequence (a string) and back again. 
+
+### The Ambiguity Problem
+A single traversal order (like **inorder**) is ambiguous. Many different trees can produce the same inorder sequence. For example, `[2, 1, 3]` could be a balanced tree with 1 at the root, or a skewed tree.
+
+### The Solution: Preorder + Null Markers
+If we record **null pointers** as well, a preorder traversal becomes completely unambiguous. 
+
+**Mental Model:**
+```
+        1
+       / \
+      2   3
+         / \
+        4   5
+```
+
+**Preorder (Root → Left → Right):**
+Visit 1 → Visit 2 → null → null → Visit 3 → Visit 4 → null → null → Visit 5 → null → null
+
+**Serialized String:** `"1,2,#,#,3,4,#,#,5,#,#"`
+
+The `#` markers tell us exactly when a subtree ends. No ambiguity! 🎯
+
+## 🔍 Why Preorder Works for Reconstruction
+
+During deserialization, we read the string from left to right:
+1. Read a value → Make it the current node.
+2. Recurse **left** (the next calls will consume the next tokens for the left subtree).
+3. Recurse **right** (the remaining calls will build the right subtree).
+
+The recursion naturally mirrors how we built the string.
+
+### Visual Walkthrough
+`"1, 2, #, #, 3, 4, #, #, 5, #, #"`
+1. `1` is the root. Now, what's on its left?
+2. `2` is the left child of `1`. Now, what's on its left?
+3. `#` means left of `2` is `None`. Now, what's on its right?
+4. `#` means right of `2` is `None`. `2` is finished!
+5. Now, what's on the right of `1`?
+6. `3` is the right child of `1`... and so on.
+
+## 💻 The Solution
+
+```python
+class Codec:
+
+    def serialize(self, root):
+        """Encodes a tree to a single string."""
+        tokens = []
+
+        def dfs(node):
+            if not node:
+                tokens.append('#')
+                return
+            # Root
+            tokens.append(str(node.val))
+            # Left
+            dfs(node.left)
+            # Right
+            dfs(node.right)
+
+        dfs(root)
+        return ','.join(tokens)
+
+    def deserialize(self, data):
+        """Decodes your encoded data to tree."""
+        # Use an iterator so each recursive call 
+        # automatically advances to the next token
+        tokens = iter(data.split(','))
+
+        def dfs():
+            val = next(tokens)
+            if val == '#':
+                return None
+            
+            node = TreeNode(int(val))
+            # Recurse in the same order we serialized
+            node.left = dfs()   # Consumes left subtree tokens
+            node.right = dfs()  # Consumes right subtree tokens
+            return node
+
+        return dfs()
+```
+
+### The Crucial Trick: `iter()`
+Using a plain list with an index pointer works, but `iter()` is elegant.
+```python
+tokens = iter(['1','2','#','#','3'])
+
+next(tokens)  # '1'  ← each call advances automatically
+next(tokens)  # '2'
+```
+Each recursive `dfs()` call calls `next()`, so the iterator acts as a **shared pointer** that moves forward across all recursive levels. No manual index bookkeeping needed! 🪄
+
+### Results
+```
+Runtime: 76 ms    — Beats 95.31%
+Memory: 22.39 MB  — Beats 88.02%
+```
+
+## ⏱️ Complexity Analysis
+
+| Phase | Time Complexity | Space Complexity |
+| :--- | :--- | :--- |
+| **Serialize** | $O(n)$ | $O(n)$ |
+| **Deserialize** | $O(n)$ | $O(n)$ stack depth |
+
+Since we visit every node exactly once, the complexity is linear relative to the number of nodes.
+
+## ⚠️ Common Mistakes to Avoid
+
+1. **Skipping Null Markers** — Without `#` or some placeholder, you can't tell where a leaf node's children end.
+2. **Using Inorder Only** — As mentioned, you need at least two traversals (e.g., preorder + inorder) to reconstruct a tree *without* null markers. With null markers, one is enough.
+3. **Manual Index Management** — Trying to pass an `index` integer through recursion often leads to bugs because integers are immutable in Python. Using a list like `[0]` or an `iter()` is much safer.
+
+## 🧠 How to Recognize This Pattern
+
+When you see these keywords in an interview:
+- **"Serialize" / "Deserialize"**
+- **"Save and load"**
+- **"Flatten a tree"**
+- **"Binary Tree to String"**
+
+Think:
+> **DFS (PREORDER) + NULL MARKERS**
+
+## 🎯 Interview Tips
+
+1. **Explain the Ambiguity** — Start by explaining *why* a simple traversal isn't enough. It shows you understand the depth of the problem.
+2. **Propose the Null Marker** — "To solve the ambiguity, I'll use a special character like `#` to represent null nodes."
+3. **Mention BFS alternative** — You can also solve this using BFS (Level-order). It's more similar to how LeetCode actually stores trees, but DFS is often more elegant to code recursively.
+4. **Consistency is Key** — The order in which you write (Serialize) must be the exact same order you read (Deserialize).

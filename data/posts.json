@@ -603,5 +603,37 @@
             "dfs",
             "interview"
         ]
+    },
+    {
+        "id": 42,
+        "title": "LeetCode 217: Contains Duplicate",
+        "subtitle": "",
+        "slug": "leetcode-217-contains-duplicate",
+        "date": "2026-05-09",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "array",
+            "hash-table",
+            "interview"
+        ]
+    },
+    {
+        "id": 43,
+        "title": "LeetCode 297: Serialize and Deserialize Binary Tree",
+        "subtitle": "",
+        "slug": "leetcode-297-serialize-and-deserialize-binary-tree",
+        "date": "2026-05-09",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "tree",
+            "dfs",
+            "design",
+            "binary-tree",
+            "interview"
+        ]
     }
 ]
