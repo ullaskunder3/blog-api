@@ -635,5 +635,20 @@
             "binary-tree",
             "interview"
         ]
+    },
+    {
+        "id": 44,
+        "title": "LeetCode 152: Maximum Product Subarray",
+        "subtitle": "Track both maximum and minimum products to handle negative numbers in this DP problem.",
+        "slug": "leetcode-152-maximum-product-subarray",
+        "date": "2026-05-10",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "dynamic-programming",
+            "array",
+            "interview"
+        ]
     }
 ]

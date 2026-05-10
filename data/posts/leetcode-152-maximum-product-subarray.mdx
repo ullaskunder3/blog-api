@@ -1,0 +1,169 @@
+---
+title: 'LeetCode 152: Maximum Product Subarray'
+subtitle: Track both maximum and minimum products to handle negative numbers in this DP problem.
+id: 44
+date: '2026-05-10'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - dynamic-programming
+  - array
+  - interview
+prev: leetcode-297-serialize-and-deserialize-binary-tree
+next: graphics-template
+---
+
+# LeetCode 152: Maximum Product Subarray
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/maximum-product-subarray/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Finding the maximum sum of a subarray is a classic problem (Kadane's Algorithm). But what happens when we switch from addition to multiplication? Suddenly, a very small negative number isn't just a "bad" result—it's a potential goldmine waiting for another negative number to flip it into a massive positive one. 🎢
+
+To solve this problem well in interviews, the key insight is: **A negative number can turn the smallest product into the largest product.**
+
+## 🧩 The Problem
+
+> Given an integer array `nums`, find a contiguous non-empty subarray within the array that has the largest product, and return the product.
+
+### Example
+**Input:** `nums = [2, 3, -2, 4]`
+**Possible products:**
+- `[2] = 2`
+- `[2, 3] = 6`
+- `[3, -2] = -6`
+- `[4] = 4`
+
+**Output:** `6`
+
+## 🧠 Why Kadane’s Algorithm is not enough
+
+In Kadane's for sums, bigger is always better. If a sum becomes negative, we reset it.
+
+However, for products, **negative × negative = positive**.
+
+**Example:** `[-2, 3, -4]`
+If we only track the maximum:
+1. At `-2`: max = -2
+2. At `3`: max = 3 (since 3 > 3 * -2)
+3. At `-4`: `3 * -4 = -12`. Looks bad, right?
+
+**BUT:**
+If we had tracked the *minimum* product:
+- At `3`: min = -6
+- At `-4`: `-6 * -4 = 24`
+
+This becomes our new maximum! To handle these flips, we must track **both** the maximum and the minimum product ending at the current index.
+
+## 🧠 The DP Strategy
+
+We define two states for every index:
+- `curMax`: The maximum product ending at the current index.
+- `curMin`: The minimum product ending at the current index (needed because it might become a max later).
+
+### The Transition
+For every number `n`, we have three choices:
+1. **Start fresh:** Just the number `n` itself.
+2. **Extend previous max:** `n * curMax`
+3. **Extend previous min:** `n * curMin`
+
+We update our state:
+```python
+tempMax = max(n, n * curMax, n * curMin)
+tempMin = min(n, n * curMax, n * curMin)
+curMax, curMin = tempMax, tempMin
+```
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+**Input:** `[2, 3, -2, 4]`
+
+| Step | Number (n) | Choices (n, n*max, n*min) | curMax | curMin | Global Ans |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Init** | - | - | 2 | 2 | 2 |
+| **1** | 3 | (3, 6, 6) | 6 | 3 | 6 |
+| **2** | -2 | (-2, -12, -6) | -2 | -12 | 6 |
+| **3** | 4 | (4, -8, -48) | 4 | -48 | 6 |
+
+**Final Answer:** `6`
+
+## 💻 Solution
+
+```python
+class Solution(object):
+    def maxProduct(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
+        if not nums:
+            return 0
+            
+        # Initialize everything with the first element
+        curMax = nums[0]
+        curMin = nums[0]
+        ans = nums[0]
+        
+        # Traverse from the second element
+        for n in nums[1:]:
+            # Store old curMax because it changes during the min calculation
+            tempMax = max(n, n * curMax, n * curMin)
+            tempMin = min(n, n * curMax, n * curMin)
+            
+            curMax = tempMax
+            curMin = tempMin
+            
+            # Update global answer
+            ans = max(ans, curMax)
+        
+        return ans
+```
+
+### ✨ Cleaner Interview Trick
+Many candidates use this elegant trick: if the current number is negative, `curMax` and `curMin` swap their roles after multiplication. We can just swap them *before* calculating!
+
+```python
+class Solution(object):
+    def maxProduct(self, nums):
+        curMax = curMin = ans = nums[0]
+        
+        for n in nums[1:]:
+            if n < 0:
+                curMax, curMin = curMin, curMax
+            
+            curMax = max(n, n * curMax)
+            curMin = min(n, n * curMin)
+            
+            ans = max(ans, curMax)
+            
+        return ans
+```
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time** | $O(n)$ | We iterate through the array exactly once. |
+| **Space** | $O(1)$ | We only use a few variables regardless of input size. |
+
+## 🧠 How to Recognize This Pattern
+
+Whenever:
+1. **Negatives can flip behavior** (e.g., product, absolute difference).
+2. **Multiplication/Division** is involved.
+3. You need to track the "best" but the "worst" could become the "best" later.
+
+Think: **"Do I need to maintain both maximum and minimum states?"**
+
+This same idea appears in:
+- DP with sign changes.
+- Stock problems with cooldown or complex states.
+- Path product problems in grids.
+
+## 🎯 Interview Tips
+
+1. **The Zero Case:** Briefly mention how zero affects the result. Zero resets both `curMax` and `curMin` to zero, which is handled correctly by our `max(n, ...)` logic.
+2. **The Swap Trick:** Mentioning the `if n < 0: swap(max, min)` trick shows you have deep intuition about how signs affect multiplication.
+3. **Space Optimization:** Emphasize that while this is a DP problem, we only need $O(1)$ space because we only depend on the *previous* state.
