@@ -1,0 +1,129 @@
+---
+title: 'LeetCode 62: Unique Paths'
+subtitle: Master grid navigation by building intuition from 2D recursion to optimized 1D Dynamic Programming.
+id: 46
+date: '2026-05-11'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - dynamic-programming
+  - math
+  - interview
+prev: leetcode-206-reverse-linked-list
+next: graphics-template
+---
+
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/unique-paths/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Grid navigation is a classic playground for Dynamic Programming. While it looks like a geometry problem at first, it's actually a counting problem. The robot has a simple rule, and that simplicity allows us to build a highly efficient solution from the ground up. 🤖
+
+## 🧩 The Problem
+
+> There is a robot on an `m x n` grid. The robot is initially located at the top-left corner (`grid[0][0]`). The robot tries to move to the bottom-right corner (`grid[m - 1][n - 1]`). The robot can only move either **down** or **right** at any point in time.
+>
+> Given the two integers `m` and `n`, return the number of possible unique paths that the robot can take to reach the bottom-right corner.
+
+### Example
+**Input:** `m = 3, n = 7`
+**Output:** `28`
+
+---
+
+## 🛠️ Approach: Dynamic Programming
+
+### The Insight
+To reach any cell, the robot could only have come from two directions: the cell **above** it or the cell to its **left**.
+
+Therefore, the number of paths to any cell equals:
+`paths-from-above` + `paths-from-left`.
+
+The edges are our base cases. Any cell in the first row or first column has exactly **one** path to it, because the robot has no choice but to go straight along that edge to reach them.
+
+### Building the Recurrence
+Let `dp[i][j]` be the number of ways to reach row `i`, column `j`.
+
+*   **Base Case:** If `i == 0` or `j == 0`, then `dp[i][j] = 1`.
+*   **Recursive Step:** Otherwise, `dp[i][j] = dp[i-1][j] + dp[i][j-1]`.
+
+### 🚀 Space Optimization: Compressing to 1D
+You never actually need the full 2D table. When filling row `i`, you only ever look at values from row `i-1`. By keeping a single array `dp` of length `m` and updating it in place, we can save significant memory.
+
+The key line is `dp[j] += dp[j-1]`:
+1.  **`dp[j]` (before update):** Holds the value from the previous row iteration (the "from above" count).
+2.  **`dp[j-1]`:** Was just updated earlier in this same pass (the "from left" count).
+3.  **Result:** The old value is overwritten exactly when we stop needing it!
+
+---
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+For **m = 3, n = 7**:
+Initial state: `dp = [1, 0, 0]` (The first cell is the start)
+
+| Pass (n) | Row State (`dp`) | Logic / Insight |
+| :--- | :--- | :--- |
+| **Start** | `[1, 0, 0]` | Robot starts at `(0,0)` |
+| **Pass 0** | `[1, 1, 1]` | First column filled with 1s |
+| **Pass 1** | `[1, 2, 3]` | `1+1=2`, `2+1=3` |
+| **Pass 2** | `[1, 3, 6]` | `1+2=3`, `3+3=6` |
+| **Pass 3** | `[1, 4, 10]` | `1+3=4`, `4+6=10` |
+| **Pass 4** | `[1, 5, 15]` | `1+4=5`, `5+10=15` |
+| **Pass 5** | `[1, 6, 21]` | `1+5=6`, `6+15=21` |
+| **Pass 6** | `[1, 7, 28]` | `1+6=7`, `7+21=28` |
+
+**Final Answer:** `28`
+
+---
+
+## 💻 Code Implementation
+
+```python
+class Solution(object):
+    def uniquePaths(self, m, n):
+        """
+        :type m: int
+        :type n: int
+        :rtype: int
+        """
+        # Create a 1D DP array of size m
+        dp = [0] * m
+        dp[0] = 1 # Starting point
+        
+        # Iterate through columns
+        for i in range(n):
+            # Iterate through rows starting from index 1
+            for j in range(1, m):
+                # Number of ways to reach current cell = 
+                # Ways from above (old dp[j]) + Ways from left (new dp[j-1])
+                dp[j] += dp[j-1]
+    
+        return dp[m-1]
+```
+
+---
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time** | $O(m \times n)$ | We visit every cell in the imaginary grid exactly once. |
+| **Space** | $O(m)$ | We only store one array of length `m`, avoiding a full 2D table. |
+
+---
+
+## 🧠 How to Recognize This Pattern
+
+This "Summing paths from neighbors" pattern is ubiquitous in grid problems:
+1.  **Unique Paths II:** Adding obstacles (just set `dp[j] = 0` if there's an obstacle).
+2.  **Minimum Path Sum:** Use `min()` instead of `sum()`.
+3.  **Dungeon Game:** A bottom-up variation of the same grid DP logic.
+
+## 🎯 Interview Tips
+
+1.  **The Combinatorics Cheat Code:** If the interviewer asks for a "faster" way than DP, mention that this is actually a calculation of **Combinations**: $(m+n-2) \text{ choose } (m-1)$. It runs in $O(\min(m, n))$ time!
+2.  **Base Cases First:** Always explain the first row/column logic clearly; it shows you understand why the recurrence works.
+3.  **Space Compression:** If you start with a 2D approach, wait for the interviewer to ask "Can we do better?" before offering the 1D optimization. It shows progression in your thinking.

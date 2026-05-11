@@ -664,5 +664,20 @@
             "linked-list",
             "interview"
         ]
+    },
+    {
+        "id": 46,
+        "title": "LeetCode 62: Unique Paths",
+        "subtitle": "Master grid navigation by building intuition from 2D recursion to optimized 1D Dynamic Programming.",
+        "slug": "leetcode-62-unique-paths",
+        "date": "2026-05-11",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "dynamic-programming",
+            "math",
+            "interview"
+        ]
     }
 ]
