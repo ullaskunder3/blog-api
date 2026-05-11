@@ -650,5 +650,19 @@
             "array",
             "interview"
         ]
+    },
+    {
+        "id": 45,
+        "title": "LeetCode 206: Reverse Linked List",
+        "subtitle": "Master both iterative and recursive approaches to reversing a singly linked list.",
+        "slug": "leetcode-206-reverse-linked-list",
+        "date": "2026-05-11",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "linked-list",
+            "interview"
+        ]
     }
 ]

@@ -1,0 +1,131 @@
+---
+title: 'LeetCode 206: Reverse Linked List'
+subtitle: Master both iterative and recursive approaches to reversing a singly linked list.
+id: 45
+date: '2026-05-11'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - linked-list
+  - interview
+prev: leetcode-152-maximum-product-subarray
+next: graphics-template
+---
+
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/reverse-linked-list/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Reversing a linked list is the "Hello World" of pointer manipulation. It's a fundamental skill that tests your ability to manage memory addresses and understand how data structures are wired together. Whether you do it iteratively or recursively, the core logic remains the same: flip the arrows. 🔄
+
+## 🧩 The Problem
+
+> Given the `head` of a singly linked list, reverse the list, and return the reversed list.
+
+### Example
+**Input:** `1 -> 2 -> 3 -> 4 -> 5 -> NULL`
+**Output:** `5 -> 4 -> 3 -> 2 -> 1 -> NULL`
+
+## 🛠️ Approach 1: Iterative (The Pointer Dance)
+
+The iterative solution is the most space-efficient and commonly used in production. We use three pointers to keep track of where we are, where we came from, and where we’re going next.
+
+### The Idea
+We keep track of:
+- `prev`: The previous node (starts as `None`).
+- `curr`: The current node we are processing (starts as `head`).
+- `next_node`: A temporary pointer to save the next node before we break the link.
+
+### 🔍 Visualizing the Iterative Step (Dry Run)
+
+For a list: `1 -> 2 -> 3 -> None`
+
+| Step | curr | curr.next (Action) | prev | next_node |
+| :--- | :--- | :--- | :--- | :--- |
+| **Start** | `1` | `2` | `None` | - |
+| **1** | `1` | Point to `prev` (`None`) | `1` | `2` |
+| **2** | `2` | Point to `prev` (`1`) | `2` | `3` |
+| **3** | `3` | Point to `prev` (`2`) | `3` | `None` |
+
+**Final Result:** `3 -> 2 -> 1 -> None`
+
+### 💻 Iterative Code
+
+```python
+# Definition for singly-linked list.
+# class ListNode(object):
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution(object):
+    def reverseList(self, head):
+        """
+        :type head: ListNode
+        :rtype: ListNode
+        """
+        prev = None
+        curr = head
+        
+        while curr:
+            next_node = curr.next   # 1. Save the next node
+            curr.next = prev        # 2. Reverse the link (flip the arrow)
+            prev = curr             # 3. Move 'prev' one step forward
+            curr = next_node        # 4. Move 'curr' one step forward
+            
+        return prev
+```
+
+## 🛠️ Approach 2: Recursive (The Leap of Faith)
+
+The recursive approach is elegant but uses more space on the call stack. The "trick" here is to reverse the rest of the list first, then fix the current node's pointer.
+
+### The Idea
+If we have `1 -> 2 -> 3`, we call the function on `2 -> 3`.
+1. It returns the reversed sub-list: `3 -> 2`.
+2. Now we need to make `2` point back to `1`.
+3. And make `1` point to `None`.
+
+### 💻 Recursive Code
+
+```python
+class Solution(object):
+    def reverseList(self, head):
+        # Base case: empty list or single node
+        if not head or not head.next:
+            return head
+        
+        # Reverse the rest of the list
+        new_head = self.reverseList(head.next)
+        
+        # 'head.next' is still the node that was originally after 'head'
+        # We make THAT node point back to 'head'
+        head.next.next = head
+        
+        # Break the old forward link
+        head.next = None
+        
+        return new_head
+```
+
+## ⏱️ Complexity Analysis
+
+| Approach | Time Complexity | Space Complexity | Rating |
+| :--- | :--- | :--- | :--- |
+| **Iterative** | $O(n)$ | $O(1)$ | 🏆 Optimal |
+| **Recursive** | $O(n)$ | $O(n)$ | 🎨 Elegant but Stack-Heavy |
+
+## 🧠 How to Recognize This Pattern
+
+Linked list problems often require reversing a portion or the whole list. You'll see this in:
+1. **Palindrome Linked List:** Reverse the second half to compare with the first.
+2. **Reverse Nodes in k-Group:** A more complex version of this problem.
+3. **Reorder List:** Reverse the second half and merge.
+
+## 🎯 Interview Tips
+
+1. **Edge Cases:** Always handle `None` (empty list) and a single node list.
+2. **Naming:** Use clear names like `prev`, `curr`, and `next_node`. Don't just use `p`, `c`, `n`.
+3. **Drawing:** If you get stuck during an interview, draw the nodes and arrows. It makes the pointer logic much harder to mess up.
