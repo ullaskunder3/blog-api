@@ -679,5 +679,22 @@
             "math",
             "interview"
         ]
+    },
+    {
+        "id": 47,
+        "title": "LeetCode 98: Validate Binary Search Tree",
+        "subtitle": "Verify a BST's integrity by ensuring every node respects its upper and lower bounds during an inorder traversal.",
+        "slug": "leetcode-98-validate-binary-search-tree",
+        "date": "2026-05-12",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "tree",
+            "depth-first-search",
+            "binary-search-tree",
+            "binary-tree",
+            "interview"
+        ]
     }
 ]
