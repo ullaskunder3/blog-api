@@ -696,5 +696,19 @@
             "binary-tree",
             "interview"
         ]
+    },
+    {
+        "id": 48,
+        "title": "LeetCode 139: Word Break",
+        "subtitle": "A detailed breakdown of the DP string segmentation approach, optimizing for both speed and memory.",
+        "slug": "leetcode-139-word-break",
+        "date": "2026-05-13",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "dynamic-programming",
+            "interview"
+        ]
     }
 ]

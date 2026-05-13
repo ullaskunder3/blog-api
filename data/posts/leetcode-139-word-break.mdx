@@ -1,0 +1,115 @@
+---
+title: 'LeetCode 139: Word Break'
+subtitle: A detailed breakdown of the DP string segmentation approach, optimizing for both speed and memory.
+id: 48
+date: '2026-05-13'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - dynamic-programming
+  - interview
+prev: leetcode-98-validate-binary-search-tree
+next: graphics-template
+---
+
+<iframe src="https://leetcode.com/problems/word-break/description/" width="100%" height="500px" style={{border: 'none', borderRadius: '8px', marginBottom: '2rem'}}></iframe>
+
+Welcome back! 🚀 Today, we are tackling a classic Dynamic Programming problem: **Word Break**. This problem is a fundamental building block for understanding how string segmentation works.
+
+If you've ever wondered how spell checkers or text parsing systems figure out where to split words when spaces are missing, this is the exact logic! Let's break it down. 🧩
+
+## The Problem
+
+> Given a string `s` and a dictionary of strings `wordDict`, return `true` if `s` can be segmented into a space-separated sequence of one or more dictionary words.
+>
+> Note that the same word in the dictionary may be reused multiple times in the segmentation.
+
+**Example:**
+- **Input:** `s = "leetcode", wordDict = ["leet","code"]`
+- **Output:** `true`
+- **Explanation:** Return `true` because "leetcode" can be segmented as "leet code".
+
+## 🛠️ Approach: Dynamic Programming (Bottom-Up)
+
+We can solve this problem elegantly using Dynamic Programming. The core intuition is to build up our answer by checking progressively longer prefixes of the string `s`.
+
+1. **State Definition:** Let `dp[i]` represent whether the prefix of string `s` of length `i` (i.e., `s[0:i]`) can be segmented into dictionary words.
+2. **Initialization:** `dp[0]` is initialized to `True` because an empty string can always be validly segmented. All other `dp` values are initialized to `False`.
+3. **Transition:** For each length `i` from `1` to `n` (the length of `s`), we check all possible split points `j` before `i`. If the prefix up to `j` is valid (`dp[j] == True`) AND the remaining substring `s[j:i]` is a word in the dictionary, then the prefix up to `i` is also valid (`dp[i] = True`).
+
+**Optimization:** Instead of checking all possible split points `j` from `0` to `i`, we can limit our lookback. The length of a valid word cannot exceed the longest word in our dictionary. So, we only need to check `j` starting from `max(0, i - max_len)`. This small tweak dramatically improves our execution time from 11ms to 0ms (Beating 100%)! 🚀
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+Let's trace `s = "applepenapple"`, `wordDict = ["apple", "pen"]`. Longest word is 5 (`"apple"`).
+Length `n = 13`. `dp = [True, False, False, ..., False]`
+
+| Length (`i`) | Checks (Substring `s[j:i]`) | Valid Found? | `dp[i]` Status |
+| :--- | :--- | :--- | :--- |
+| `1` (`"a"`) | `s[0:1]`="a" | No | `False` |
+| ... | ... | ... | ... |
+| `5` (`"apple"`) | `s[0:5]`="apple" (`dp[0]`=True) | Yes ("apple") | `dp[5] = True` |
+| `6` (`"applep"`) | `s[1:6]`, ..., `s[5:6]`="p" | No | `False` |
+| `8` (`"applepen"`) | `s[3:8]`="lepen", `s[5:8]`="pen" | Yes ("pen", `dp[5]`=True) | `dp[8] = True` |
+| `13` (`"...apple"`) | `s[8:13]`="apple" | Yes ("apple", `dp[8]`=True) | `dp[13] = True` |
+
+*Final Result:* `dp[13]` is `True`.
+
+## 💻 The Optimal Code
+
+Here is the highly optimized Python 3 solution:
+
+```python
+class Solution(object):
+    def wordBreak(self, s, wordDict):
+        """
+        :type s: str
+        :type wordDict: List[str]
+        :rtype: bool
+        """
+        # Convert list to set for O(1) lookups
+        word_set = set(wordDict)
+        n = len(s)
+
+        # dp[i] represents if s[0:i] can be segmented
+        dp = [False] * (n + 1)
+        dp[0] = True            
+        
+        # Optimize by tracking the maximum word length in the dictionary
+        max_len = max(len(word) for word in wordDict)
+        
+        for i in range(1, n + 1): 
+            # Only look back as far as the longest possible word in our dictionary
+            for j in range(max(0, i - max_len), i): 
+                if dp[j] and s[j:i] in word_set:
+                    dp[i] = True
+                    break             
+                    
+        return dp[n]
+```
+
+## ⏱️ Complexity Analysis
+
+| Metric | Complexity | Rating / Notes |
+| :--- | :--- | :--- |
+| **Time Complexity** | `O(N * M)` | 🏆 Optimal. `N` is length of `s`, `M` is max word length. By capping the inner loop at `max_len`, we drop from `O(N^2)`. Substring slicing takes `O(M)`. |
+| **Space Complexity** | `O(N + W)` | 🏆 Optimal. `O(N)` for the `dp` array and `O(W)` for the `word_set` where `W` is total characters in `wordDict`. |
+
+## 🧠 How to Recognize This Pattern
+
+This problem is a classic example of **1D Dynamic Programming on Strings**. You should consider this pattern when:
+1. **String Segmentation:** You need to split a string based on a set of valid dictionary words.
+2. **"Is it possible?" Queries:** The problem asks for a boolean (true/false) return value instead of finding all possible combinations.
+3. **Prefix/Suffix Checking:** The validity of the current string state depends entirely on the validity of a smaller prefix or suffix.
+
+**Similar Problems:**
+- LeetCode 140: Word Break II (requires returning all valid sentences)
+- LeetCode 131: Palindrome Partitioning
+- LeetCode 322: Coin Change (similar DP conceptual structure)
+
+## 🎯 Interview Tips
+
+- **Always use a Set:** The first thing you should mention to your interviewer is converting `wordDict` into a `HashSet`. Checking if a substring exists in a List is `O(W)`, but `O(1)` in a Set. It shows you care about constants!
+- **Highlight the Optimization:** The nested loops naturally lead to an `O(N^2)` time complexity. Proposing the `max_len` optimization demonstrates deep optimization thinking and often changes a "Hire" to a "Strong Hire".
+- **Draw the DP Array:** If asked to trace, draw a 1D array representing `dp` and draw arrows connecting valid `j` indices to the current `i`. It perfectly visualizes the bottom-up approach.
