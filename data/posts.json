@@ -710,5 +710,19 @@
             "dynamic-programming",
             "interview"
         ]
+    },
+    {
+        "id": 49,
+        "title": "LeetCode 191: Number of 1 Bits",
+        "subtitle": "Count set bits in O(k) time using Brian Kernighan's bit trick — where k is the number of 1-bits.",
+        "slug": "leetcode-191-number-of-1-bits",
+        "date": "2026-05-14",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "bit-manipulation",
+            "interview"
+        ]
     }
 ]

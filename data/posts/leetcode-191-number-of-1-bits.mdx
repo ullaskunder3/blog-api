@@ -1,0 +1,157 @@
+---
+title: 'LeetCode 191: Number of 1 Bits'
+subtitle: Count set bits in O(k) time using Brian Kernighan's bit trick — where k is the number of 1-bits.
+id: 49
+date: '2026-05-14'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - bit-manipulation
+  - interview
+prev: leetcode-139-word-break
+next: graphics-template
+---
+
+# LeetCode 191: Number of 1 Bits
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/number-of-1-bits/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Counting the number of `1`s in a binary number sounds trivial — just convert it to a string and count, right? But in the world of bit manipulation, there's an elegant trick that skips over all the zeros entirely. 🚀
+
+The key insight: **`n & (n - 1)` drops the lowest set bit.** This means we can count 1-bits in exactly `k` steps, where `k` is the number of set bits — no wasted iterations on zeros!
+
+## 🧩 The Problem
+
+> Given a positive integer `n`, write a function that returns the number of **set bits** in its binary representation (also known as the **Hamming weight**).
+
+### Examples
+
+**Example 1:**
+```
+Input: n = 11
+Output: 3
+
+Explanation: Binary of 11 = 1011 → three 1-bits. ✅
+```
+
+**Example 2:**
+```
+Input: n = 128
+Output: 1
+
+Explanation: Binary of 128 = 10000000 → one 1-bit. ✅
+```
+
+**Example 3:**
+```
+Input: n = 2147483645
+Output: 30
+
+Explanation: Binary = 1111111111111111111111111111101 → thirty 1-bits.
+```
+
+### Constraints
+- `1 <= n <= 2^31 - 1`
+
+## 🧠 How to Think About This
+
+There are two common approaches:
+
+### 1. Naive: Check Every Bit
+Shift `n` right one bit at a time, checking `n & 1` to see if the last bit is `1`.
+- **Time:** $O(32)$ — Always checks all 32 bits, even if only 1 is set. 🐢
+- **Space:** $O(1)$
+
+### 2. Brian Kernighan's Trick ✨
+The expression `n & (n - 1)` clears the **lowest set bit** of `n`.
+- **Time:** $O(k)$ — Only iterates `k` times, where `k` = number of set bits. 🚀
+- **Space:** $O(1)$
+
+### Why Does `n & (n - 1)` Work?
+
+When you subtract 1 from a number, all bits after the lowest set bit get **flipped**:
+
+```
+n     = 1100     (12 in decimal)
+n - 1 = 1011     (11 in decimal)
+-------------------
+n & (n-1) = 1000  (the lowest 1-bit is gone!)
+```
+
+The AND operation keeps everything above the lowest set bit intact while clearing it. Each iteration removes exactly **one** `1`-bit, so we only loop as many times as there are set bits.
+
+## 🛠️ Approach: Brian Kernighan's Bit Manipulation
+
+1. Initialize a `count = 0`.
+2. While `n > 0`:
+   - Apply `n = n & (n - 1)` to drop the lowest set bit.
+   - Increment `count`.
+3. Return `count`.
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+**Input:** `n = 11` → Binary: `1011`
+
+| Step | n (binary) | n (decimal) | n - 1 (binary) | n & (n-1) | count |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Start** | `1011` | 11 | — | — | 0 |
+| **1** | `1011` | 11 | `1010` | `1010` (10) | 1 |
+| **2** | `1010` | 10 | `1001` | `1000` (8) | 2 |
+| **3** | `1000` | 8 | `0111` | `0000` (0) | 3 |
+
+`n` is now `0` → **Return 3** ✅
+
+Only **3 iterations** for 3 set bits — no wasted work on the zero bit at position 2!
+
+## 💻 Solution
+
+```python
+class Solution(object):
+    def hammingWeight(self, n):
+        """
+        :type n: int
+        :rtype: int
+        """
+        count = 0
+
+        while n:
+            n = n & (n - 1)
+            count += 1
+        return count
+```
+
+### Results
+```
+Runtime: 0 ms     — Beats 100.00%
+Memory: 12.30 MB  — Beats 90.20%
+```
+
+598 / 598 testcases passed ✅
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time** | $O(k)$ 🏆 Optimal | `k` = number of set bits. At most 31 iterations for a 32-bit integer. |
+| **Space** | $O(1)$ 🏆 Optimal | Only a single counter variable is used. |
+
+## 🧠 How to Recognize This Pattern
+
+When you see:
+1. **"Count bits"** or **"Hamming weight"** — direct application.
+2. **"Power of 2"** — a number is a power of 2 if `n & (n - 1) == 0` (only one set bit!).
+3. **"Flip / toggle bits"** or **"difference in binary"** — Hamming distance between two numbers is `hammingWeight(x ^ y)`.
+
+The `n & (n - 1)` trick is the Swiss Army knife 🔧 of bit manipulation. It appears in:
+- **LeetCode 231:** Is Power of Two → `n > 0 and n & (n-1) == 0`
+- **LeetCode 338:** Counting Bits → `dp[i] = dp[i & (i-1)] + 1`
+- **LeetCode 461:** Hamming Distance → count set bits in `x ^ y`
+
+## 🎯 Interview Tips
+
+1. **Know the Trick Name** — Mentioning "Brian Kernighan's algorithm" by name signals deep understanding of bit manipulation to interviewers.
+2. **Follow-Up Answer** — The problem asks: *"If this function is called many times, how would you optimize it?"* Answer: **Precompute** a lookup table (e.g., for every 8-bit chunk) and sum the results. This gives $O(1)$ per query after $O(2^8)$ preprocessing.
+3. **Compare Approaches** — Explain the naive `O(32)` right-shift approach first, then optimize to `O(k)` with `n & (n - 1)`. Showing this progression demonstrates strong problem-solving skills.
