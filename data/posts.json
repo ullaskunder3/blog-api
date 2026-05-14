@@ -724,5 +724,21 @@
             "bit-manipulation",
             "interview"
         ]
+    },
+    {
+        "id": 50,
+        "title": "LeetCode 54: Spiral Matrix",
+        "subtitle": "Peel the matrix layer by layer using four shrinking boundaries — a classic simulation problem.",
+        "slug": "leetcode-54-spiral-matrix",
+        "date": "2026-05-14",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "array",
+            "matrix",
+            "simulation",
+            "interview"
+        ]
     }
 ]

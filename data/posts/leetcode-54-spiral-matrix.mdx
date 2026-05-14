@@ -1,0 +1,215 @@
+---
+title: 'LeetCode 54: Spiral Matrix'
+subtitle: Peel the matrix layer by layer using four shrinking boundaries — a classic simulation problem.
+id: 50
+date: '2026-05-14'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - array
+  - matrix
+  - simulation
+  - interview
+prev: leetcode-191-number-of-1-bits
+next: graphics-template
+---
+
+# LeetCode 54: Spiral Matrix
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/spiral-matrix/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Imagine peeling an onion — layer by layer, ring by ring. That's exactly how the Spiral Matrix problem works. Instead of reading a matrix row-by-row, we traverse its outer boundary, then shrink inward and repeat. 🌀
+
+The key insight: **Use four boundary pointers (`top`, `bottom`, `left`, `right`) and shrink them after each directional sweep.** No visited arrays, no direction vectors — just clean boundary arithmetic.
+
+## 🧩 The Problem
+
+> Given an `m x n` matrix, return all elements of the matrix in **spiral order**.
+
+### Examples
+
+**Example 1:**
+```
+Input: matrix = [[1,2,3],
+                 [4,5,6],
+                 [7,8,9]]
+
+Output: [1,2,3,6,9,8,7,4,5]
+```
+
+**Example 2:**
+```
+Input: matrix = [[1, 2, 3, 4],
+                 [5, 6, 7, 8],
+                 [9,10,11,12]]
+
+Output: [1,2,3,4,8,12,11,10,9,5,6,7]
+```
+
+### Constraints
+- `m == matrix.length`
+- `n == matrix[i].length`
+- `1 <= m, n <= 10`
+- `-100 <= matrix[i][j] <= 100`
+
+## 🧠 How to Think About This
+
+Think of the matrix as having **layers** (like concentric rectangles). For each layer, we walk:
+
+1. **→ Left to Right** across the top row
+2. **↓ Top to Bottom** down the right column
+3. **← Right to Left** across the bottom row *(if it still exists)*
+4. **↑ Bottom to Top** up the left column *(if it still exists)*
+
+After completing one full ring, we **shrink all four boundaries** inward and repeat until there are no rows/columns left.
+
+The two `if` guards (steps 3 & 4) are critical — without them, a single remaining row or column would get traversed **twice**.
+
+## 🛠️ Approach: Four-Boundary Simulation
+
+Define four pointers:
+- `top` — the topmost unvisited row
+- `bottom` — the bottommost unvisited row
+- `left` — the leftmost unvisited column
+- `right` — the rightmost unvisited column
+
+Each iteration walks the full perimeter of the current rectangle, then tightens:
+
+```
+top += 1    (shrink from top)
+right -= 1  (shrink from right)
+bottom -= 1 (shrink from bottom)
+left += 1   (shrink from left)
+```
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+**Input:**
+```
+[[1,  2,  3,  4],
+ [5,  6,  7,  8],
+ [9, 10, 11, 12]]
+```
+
+**Initial boundaries:** `top=0, bottom=2, left=0, right=3`
+
+| Phase | Direction | Boundaries | Elements Collected | Boundary Update |
+| :--- | :--- | :--- | :--- | :--- |
+| **Layer 1** | → top row | `top=0` | **1, 2, 3, 4** | `top → 1` |
+| | ↓ right col | `right=3` | **8, 12** | `right → 2` |
+| | ← bottom row | `bottom=2` | **11, 10, 9** | `bottom → 1` |
+| | ↑ left col | `left=0` | **5** | `left → 1` |
+| **Layer 2** | → top row | `top=1` | **6, 7** | `top → 2` |
+| | ↓ right col | `right=2` | *(empty, top > bottom)* | loop ends |
+
+**Result:** `[1, 2, 3, 4, 8, 12, 11, 10, 9, 5, 6, 7]` ✅
+
+### Visual Spiral Path
+
+```
+  ┌──→──→──→──┐
+  │  1  2  3  4│
+  │            ↓
+  ↑  5  6→ 7  8
+  │            ↓
+  │  9 10←11 12│
+  └──←──←──←──┘
+```
+
+## 💻 Solution
+
+```python
+class Solution(object):
+    def spiralOrder(self, matrix):
+        """
+        :type matrix: List[List[int]]
+        :rtype: List[int]
+        """
+        res = []
+
+        top, bottom = 0, len(matrix) - 1
+        left, right = 0, len(matrix[0]) - 1
+
+        while left <= right and top <= bottom:
+
+            # → Traverse top row: left to right
+            for j in range(left, right + 1):
+                res.append(matrix[top][j])
+            top += 1
+
+            # ↓ Traverse right column: top to bottom
+            for i in range(top, bottom + 1):
+                res.append(matrix[i][right])
+            right -= 1
+
+            # ← Traverse bottom row: right to left (if rows remain)
+            if top <= bottom:
+                row = matrix[bottom]
+                for j in range(right, left - 1, -1):
+                    res.append(row[j])
+                bottom -= 1
+
+            # ↑ Traverse left column: bottom to top (if columns remain)
+            if left <= right:
+                for i in range(bottom, top - 1, -1):
+                    res.append(matrix[i][left])
+                left += 1
+
+        return res
+```
+
+### Results
+```
+Runtime: 0 ms     — Beats 100.00%
+Memory: 12.28 MB  — Beats 91.33%
+```
+
+26 / 26 testcases passed ✅
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time** | $O(m \times n)$ 🏆 Optimal | Every element is visited exactly once. |
+| **Space** | $O(1)$ 🏆 Optimal | No extra space beyond the output list. The four boundary variables use constant space. |
+
+> **Note:** The output list itself takes $O(m \times n)$, but that's required by the problem — we don't count it as auxiliary space.
+
+## ⚠️ Why the `if` Guards Matter
+
+Without `if top <= bottom` and `if left <= right`, edge cases with a **single remaining row or column** would be traversed twice:
+
+```
+matrix = [[1, 2, 3]]    ← single row
+
+Without guard:
+  → collects [1, 2, 3]  (top row)
+  ← collects [3, 2, 1]  (bottom row — same row!)  ❌ DUPLICATE!
+
+With guard:
+  → collects [1, 2, 3]  (top row, then top++ makes top > bottom)
+  ← skipped because top > bottom  ✅
+```
+
+This is the #1 gotcha in this problem during interviews.
+
+## 🧠 How to Recognize This Pattern
+
+When you see:
+1. **"Spiral order"** or **"layer-by-layer"** traversal — direct application.
+2. **"Rotate matrix"** — uses the same boundary-shrinking logic (LeetCode 48).
+3. **"Generate spiral matrix"** — reverse this process to fill values instead of reading them (LeetCode 59).
+
+The **four-boundary simulation** pattern appears in:
+- **LeetCode 59:** Spiral Matrix II → fill a matrix in spiral order
+- **LeetCode 48:** Rotate Image → rotate layer by layer
+- **LeetCode 885:** Spiral Matrix III → walk in expanding spiral from a starting point
+
+## 🎯 Interview Tips
+
+1. **Draw It Out** — Sketch the matrix on a whiteboard, label the boundaries, and trace the path with arrows. This eliminates off-by-one errors before you code.
+2. **Explain the Guards** — Proactively mention *why* `if top <= bottom` and `if left <= right` are needed. Interviewers often test this exact edge case (single row/column matrices).
+3. **Know the Alternative** — Some candidates use a `direction` variable + `visited` set approach. Mention you chose boundaries because it's $O(1)$ space and avoids the overhead of tracking visited cells.
