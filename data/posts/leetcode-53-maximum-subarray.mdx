@@ -1,0 +1,138 @@
+---
+title: 'LeetCode 53: Maximum Subarray'
+subtitle: Use Kadane's Algorithm to find the maximum sum subarray in O(n) time with O(1) space.
+id: 51
+date: '2026-05-15'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - array
+  - dynamic-programming
+  - interview
+prev: leetcode-54-spiral-matrix
+next: graphics-template
+---
+
+# LeetCode 53: Maximum Subarray
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/maximum-subarray/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Given an array of integers that can be positive or negative, how do we find the contiguous subarray with the largest sum? This is one of the most frequently asked interview questions and the foundation for understanding **dynamic programming on arrays**. 🚀
+
+The key insight is beautifully simple: **if the running sum becomes negative, it can only hurt future subarrays — so we drop it and start fresh.** This greedy observation is the heart of **Kadane's Algorithm**. 🧩
+
+## 🧩 The Problem
+
+> Given an integer array `nums`, find the subarray with the largest sum, and return its sum.
+
+### Example
+**Input:** `nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]`
+**Output:** `6`
+**Explanation:** The subarray `[4, -1, 2, 1]` has the largest sum = `6`.
+
+## 🛠️ Approach: Kadane's Algorithm
+
+The idea behind Kadane's Algorithm is to maintain a **running sum** (`curr`) as we iterate through the array:
+
+1. **If `curr` is negative**, the accumulated sum would only drag down any future element. So we **reset** — start fresh from the current element.
+2. **If `curr` is non-negative**, extending the subarray by adding the current element is beneficial (or at least not harmful).
+3. At every step, we check if our current running sum beats the global **best**.
+
+### Why does this work?
+
+Think of it this way: at every index, we're making a decision — *"Should I extend the previous subarray, or is it better to start a new one here?"*
+
+- If the previous subarray's sum is **positive**, extending is always at least as good as starting fresh (positive + anything ≥ anything).
+- If the previous subarray's sum is **negative**, extending would make the current element *worse*. Starting fresh is strictly better.
+
+This greedy choice at each step guarantees we find the global optimum in a single pass.
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+**Input:** `[-2, 1, -3, 4, -1, 2, 1, -5, 4]`
+
+| Step | Element (x) | curr < 0? | Action | curr | best |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Init** | -2 | — | Initialize both | -2 | -2 |
+| **1** | 1 | ✅ Yes | Reset: curr = 1 | 1 | 1 |
+| **2** | -3 | ❌ No | Extend: curr += -3 | -2 | 1 |
+| **3** | 4 | ✅ Yes | Reset: curr = 4 | 4 | 4 |
+| **4** | -1 | ❌ No | Extend: curr += -1 | 3 | 4 |
+| **5** | 2 | ❌ No | Extend: curr += 2 | 5 | 5 |
+| **6** | 1 | ❌ No | Extend: curr += 1 | 6 | **6** |
+| **7** | -5 | ❌ No | Extend: curr += -5 | 1 | 6 |
+| **8** | 4 | ❌ No | Extend: curr += 4 | 5 | 6 |
+
+**Final Answer:** `6` (subarray `[4, -1, 2, 1]`)
+
+Notice how at step 3, `curr` was negative so we dropped the previous subarray and restarted at `4`. This is the critical moment that captures the optimal subarray.
+
+## 💻 Solution (Submitted — Beats 96.12%)
+
+```python
+class Solution:
+    def maxSubArray(self, nums):
+        best = curr = nums[0]
+
+        for x in nums[1:]:
+            if curr < 0:
+                curr = x
+            else:
+                curr += x
+
+            if curr > best:
+                best = curr
+
+        return best
+```
+
+This version avoids `max()` function calls entirely, using simple `if` comparisons instead. In CPython, direct comparisons are faster than function calls because they skip the overhead of looking up and invoking a built-in function.
+
+### ✨ Canonical Interview Version (Kadane's one-liner logic)
+
+This is the version most interviewers expect to see:
+
+```python
+class Solution:
+    def maxSubArray(self, nums):
+        curr = ans = nums[0]
+
+        for n in nums[1:]:
+            curr = max(n, curr + n)
+            ans = max(ans, curr)
+
+        return ans
+```
+
+The line `curr = max(n, curr + n)` elegantly captures the core decision: *"Is it better to extend the previous subarray (`curr + n`) or start a new one (`n`)?"*
+
+Both solutions are functionally identical. The first is slightly faster in practice; the second is more readable and universally recognized.
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time** | $O(n)$ 🏆 Optimal | Single pass through the array. |
+| **Space** | $O(1)$ 🏆 Optimal | Only two variables (`curr`, `best`) regardless of input size. |
+
+## 🧠 How to Recognize This Pattern
+
+Kadane's Algorithm applies whenever you see:
+
+1. **"Find the maximum/minimum subarray sum"** — the direct application.
+2. **"Contiguous subarray"** problems with an additive objective — sums, counts, etc.
+3. **Problems where a negative prefix hurts** — if accumulating "bad" values makes future results worse, consider resetting.
+
+This same idea extends to:
+- **Maximum Product Subarray** (LeetCode 152) — needs min/max tracking because of sign flips.
+- **Maximum Sum Circular Subarray** (LeetCode 918) — Kadane's + total-sum trick.
+- **Best Time to Buy and Sell Stock** (LeetCode 121) — essentially Kadane's on price differences.
+
+## 🎯 Interview Tips
+
+1. **Start with the brute-force**: Briefly mention the $O(n^2)$ approach (check all subarrays) to show you understand the problem, then explain why Kadane's is better.
+2. **Edge case — all negatives**: Kadane's handles this correctly by initializing `best = nums[0]`. The answer is simply the largest (least negative) element. Many candidates trip up by initializing `best = 0`.
+3. **Follow-up — Divide & Conquer**: The interviewer may ask for an $O(n \log n)$ divide-and-conquer approach. Split the array in half, recursively find the max subarray in each half, and also find the max subarray crossing the midpoint. This is a classic example of the merge-step doing the interesting work.

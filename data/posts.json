@@ -740,5 +740,20 @@
             "simulation",
             "interview"
         ]
+    },
+    {
+        "id": 51,
+        "title": "LeetCode 53: Maximum Subarray",
+        "subtitle": "Use Kadane's Algorithm to find the maximum sum subarray in O(n) time with O(1) space.",
+        "slug": "leetcode-53-maximum-subarray",
+        "date": "2026-05-15",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "array",
+            "dynamic-programming",
+            "interview"
+        ]
     }
 ]
