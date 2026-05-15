@@ -755,5 +755,20 @@
             "dynamic-programming",
             "interview"
         ]
+    },
+    {
+        "id": 52,
+        "title": "LeetCode 11: Container With Most Water",
+        "subtitle": "Maximize water storage in a container using a Two-Pointer approach to achieve optimal O(n) time complexity.",
+        "slug": "leetcode-11-container-with-most-water",
+        "date": "2026-05-15",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "two-pointers",
+            "greedy",
+            "interview"
+        ]
     }
 ]

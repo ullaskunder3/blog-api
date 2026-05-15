@@ -1,0 +1,128 @@
+---
+title: 'LeetCode 11: Container With Most Water'
+subtitle: Maximize water storage in a container using a Two-Pointer approach to achieve optimal O(n) time complexity.
+id: 52
+date: '2026-05-15'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - two-pointers
+  - greedy
+  - interview
+prev: leetcode-53-maximum-subarray
+next: graphics-template
+---
+
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/container-with-most-water/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+🚀 This problem is a classic application of the **Two-Pointer** technique. It challenges us to find the maximum volume a container can hold, given varying heights of vertical lines.
+
+🧩 The core insight is realizing that the volume is limited by the shorter of the two lines. By starting from the widest possible container and strategically moving our pointers inward, we can find the optimal solution in linear time.
+
+🔄 We use a greedy approach: always move the pointer pointing to the shorter line, as this is the only way we might find a taller line that compensates for the decreased width.
+
+## 📝 The Problem
+
+> You are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the $i^{th}$ line are `(i, 0)` and `(i, height[i])`.
+>
+> Find two lines that together with the x-axis form a container, such that the container contains the most water.
+>
+> Return the maximum amount of water a container can store.
+
+**Example:**
+- **Input:** `height = [1,8,6,2,5,4,8,3,7]`
+- **Output:** `49`
+- **Explanation:** The max area is formed between index 1 (height 8) and index 8 (height 7). Width = $8 - 1 = 7$. Height = $\min(8, 7) = 7$. Area = $7 \times 7 = 49$.
+
+## 🛠️ Approach: Two Pointers (Greedy)
+
+The brute force approach would be to check every possible pair of lines, which takes $O(n^2)$ time. However, we can do better!
+
+1.  **Initialize Pointers:** Start with one pointer at the beginning (`left = 0`) and one at the end (`right = len(height) - 1`).
+2.  **Calculate Area:** At each step, calculate the area: `min(height[left], height[right]) * (right - left)`.
+3.  **Update Max Area:** Keep track of the maximum area seen so far.
+4.  **Move Pointers Greedily:** 
+    - If `height[left] < height[right]`, increment `left`.
+    - Otherwise, decrement `right`.
+    - **Why?** Because the width is decreasing. To potentially increase the area, we *must* find a taller line. Moving the shorter line is our only hope for a larger height that might offset the smaller width.
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+Input: `height = [1, 8, 6, 2, 5, 4, 8, 3, 7]`
+
+| Step | Left (i) | Right (j) | Height[L] | Height[R] | Width | Current Area | Max Area | Move |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | 0 (val: 1) | 8 (val: 7) | 1 | 7 | 8 | 1 × 8 = 8 | 8 | L++ |
+| **2** | 1 (val: 8) | 8 (val: 7) | 8 | 7 | 7 | 7 × 7 = 49 | 49 | R-- |
+| **3** | 1 (val: 8) | 7 (val: 3) | 8 | 3 | 6 | 3 × 6 = 18 | 49 | R-- |
+| **4** | 1 (val: 8) | 6 (val: 8) | 8 | 8 | 5 | 8 × 5 = 40 | 49 | R-- |
+| **5** | 1 (val: 8) | 5 (val: 4) | 8 | 4 | 4 | 4 × 4 = 16 | 49 | R-- |
+| **6** | 1 (val: 8) | 4 (val: 5) | 8 | 5 | 3 | 5 × 3 = 15 | 49 | R-- |
+| **7** | 1 (val: 8) | 3 (val: 2) | 8 | 2 | 2 | 2 × 2 = 4 | 49 | R-- |
+| **8** | 1 (val: 8) | 2 (val: 6) | 8 | 6 | 1 | 6 × 1 = 6 | 49 | R-- |
+
+## 💻 Implementation
+
+```python
+class Solution(object):
+    def maxArea(self, height):
+        """
+        :type height: List[int]
+        :rtype: int
+        """
+        left = 0
+        right = len(height) - 1
+        max_area = 0
+
+        while left < right:
+            # Calculate area based on shorter line
+            if height[left] < height[right]:
+                h = height[left]
+                area = h * (right - left)
+                left += 1
+            else:
+                h = height[right]
+                area = h * (right - left)
+                right -= 1
+
+            # Update maximum area
+            if area > max_area:
+                max_area = area
+
+        return max_area
+```
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time Complexity** | $O(n)$ | 🏆 Optimal. We traverse the array once. |
+| **Space Complexity** | $O(1)$ | 🏆 Optimal. Only constant extra space used. |
+
+## 🧠 How to Recognize This Pattern
+
+1.  **Array/Sequence Input:** The problem involves picking a pair of elements.
+2.  **Constraint-Based Optimization:** You need a "max" or "min" value that depends on the distance between two indices.
+3.  **Shrinking Range:** If checking the outermost elements provides a "starting bound" and moving inward can only improve the quality at the cost of range, Two-Pointer is likely.
+
+**Similar Problems:**
+- Two Sum (Sorted)
+- Trapping Rain Water
+- 3Sum
+
+## 🎯 Interview Tips
+
+1.  **Explain the Greedy Choice:** Explicitly state that moving the taller pointer is useless because the area is limited by the shorter one, and the width is already shrinking.
+2.  **The Proof:** If an interviewer asks for a proof, you can mention that we never skip the optimal solution because at any point, the optimal solution must either have our current pointers or be "inside" them.
+3.  **Clean Code:** Notice how we update `max_area` after moving the pointers (or calculate it before). Both are fine as long as you are consistent.
+
+```python
+# Performance Stats
+# Runtime: 45 ms (Beats 98.13%)
+# Memory: 20.61 MB (Beats 63.35%)
+```
+
