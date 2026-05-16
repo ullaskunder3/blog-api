@@ -1,0 +1,144 @@
+---
+title: 'LeetCode 211: Design Add and Search Words Data Structure'
+subtitle: Efficient wildcard searching using an optimized Python Trie.
+id: 53
+date: '2026-05-16'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - Trie
+  - Design
+  - DFS
+  - interview
+prev: leetcode-11-container-with-most-water
+next: graphics-template
+---
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/design-add-and-search-words-data-structure/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Designing a system that supports both exact matches and wildcard searching is a classic interview challenge. While a simple hash set works for exact matches, it fails the moment you introduce a `.` wildcard. 🧩
+
+The key to solving this efficiently lies in the **Trie (Prefix Tree)**, combined with a touch of **Depth-First Search (DFS)** to handle the branching logic of wildcards. 🚀
+
+## 🧩 The Problem
+
+> Design a data structure that supports adding new words and finding if a string matches any previously added string.
+>
+> `word` may contain dots `'.'` where dots can be matched with any letter.
+
+### Example
+**Input:** `["WordDictionary","addWord","addWord","search","search"]`
+**Args:** `[[],["bad"],["dad"],["bad"],[".ad"]]`
+
+**Output:** `[null,null,null,true,true]`
+
+---
+
+## 🛠️ Approach: Trie + Recursive DFS
+
+To support prefix-based storage and wildcard matching, we use a **Trie**.
+
+1.  **Storage:** Each node in the Trie represents a character.
+2.  **Search:**
+    *   If the character is a letter (e.g., `'a'`), follow that specific child.
+    *   If the character is a wildcard (`'.'`), we must try **all** possible children at that level.
+
+### Why Simpler Wins in Python 🐍
+
+In Python, "clever" often loses to "simple." Our first instinct might be to create a `TrieNode` class. However, using **plain dictionaries** is significantly faster because CPython internals are highly optimized for hash maps. No object overhead means fewer operations per character.
+
+## 🔍 Visualizing the Approach (Dry Run)
+
+Let's look at how the Trie evolves with `addWord("bad")`, `addWord("dad")`, and then a `search(".ad")`.
+
+| Step | Operation | Trie Structure (Simplified) | Result |
+| :--- | :--- | :--- | :--- |
+| **1** | `addWord("bad")` | `root -> b -> a -> d -> $` | Word stored |
+| **2** | `addWord("dad")` | `root -> {b, d} -> a -> d -> $` | Shared branches |
+| **3** | `search("pad")` | `root` has no `p` | `False` |
+| **4** | `search(".ad")` | `.` tries `b` branch: `a -> d -> $` | `True` ✅ |
+
+## 💻 Solution
+
+This implementation uses a nested dictionary structure for the Trie, which achieves **97%+ performance** on LeetCode.
+
+```python
+class WordDictionary(object):
+
+    def __init__(self):
+        # A simple dict to store our Trie levels
+        self.trie = {}
+
+    def addWord(self, word):
+        """
+        :type word: str
+        :rtype: None
+        """
+        node = self.trie
+        for ch in word:
+            if ch not in node:
+                node[ch] = {}
+            node = node[ch]
+        node['$'] = True   # '$' marks the end of a valid word
+
+    def search(self, word):
+        """
+        :type word: str
+        :rtype: bool
+        """
+        return self._dfs(word, 0, self.trie)
+
+    def _dfs(self, word, i, node):
+        # Base Case: We've matched every character in the word
+        if i == len(word):
+            return '$' in node
+        
+        ch = word[i]
+        
+        if ch == '.':
+            # Wildcard: Recurse into every possible child
+            for child in node:
+                if child != '$' and self._dfs(word, i + 1, node[child]):
+                    return True
+            return False
+        
+        # Exact Match: Follow the path or return False
+        if ch not in node:
+            return False
+        return self._dfs(word, i + 1, node[ch])
+```
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time (addWord)** | $O(M)$ | $M$ is the length of the word being added. |
+| **Time (search)** | $O(26^k \times M)$ | $k$ is the number of dots. Worst case: we branch 26 times per dot. |
+| **Space** | $O(S)$ | $S$ is the total number of characters across all unique words. |
+
+> [!NOTE]
+> Since the constraints specify at most **2 dots per search**, the $26^k$ branching factor is capped at $26^2 = 676$, making it extremely efficient in practice.
+
+## 🧠 How to Recognize This Pattern
+
+Whenever you see:
+1. **Prefix-based searching** or "starting with" requirements.
+2. **Wildcard/Regex-lite** matching in a set of strings.
+3. Need for **memory-efficient** storage of large vocabularies.
+
+Think: **"Is this a Trie problem?"**
+
+This same pattern is used in:
+- [Implement Trie (Prefix Tree)](https://leetcode.com/problems/implement-trie-prefix-tree/)
+- [Word Search II](https://leetcode.com/problems/word-search-ii/)
+- Autocomplete systems.
+
+## 🎯 Interview Tips
+
+1. **Pythonic Optimization:** Mention that you're using nested dictionaries instead of a `TrieNode` class to reduce object creation overhead. It shows you understand language-specific performance.
+2. **The Base Case:** Be careful with the DFS base case. Matching the length of the string isn't enough; you must also check if the current node is marked as the end of a word (`'$'`).
+3. **Read Constraints:** Notice the "at most 2 dots" constraint. This tells you that a recursive DFS approach won't lead to a TLE (Time Limit Exceeded) because the branching factor is small. 🔄
+

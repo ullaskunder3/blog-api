@@ -770,5 +770,21 @@
             "greedy",
             "interview"
         ]
+    },
+    {
+        "id": 53,
+        "title": "LeetCode 211: Design Add and Search Words Data Structure",
+        "subtitle": "Efficient wildcard searching using an optimized Python Trie.",
+        "slug": "leetcode-211-design-add-and-search-words-data-structure",
+        "date": "2026-05-16",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "Trie",
+            "Design",
+            "DFS",
+            "interview"
+        ]
     }
 ]
