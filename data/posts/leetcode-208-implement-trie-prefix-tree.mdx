@@ -1,0 +1,215 @@
+---
+title: 'LeetCode 208: Implement Trie (Prefix Tree)'
+subtitle: Understand how to design and build a highly optimized prefix tree from scratch in Python.
+id: 54
+date: '2026-05-20'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - Trie
+  - Design
+  - interview
+prev: leetcode-211-design-add-and-search-words-data-structure
+next: graphics-template
+---
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/implement-trie-prefix-tree/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+When storing strings for prefix matching, autocomplete, or spellchecking, standard data structures like Hash Tables fall short. A Hash Table can easily check if a word exists, but finding all words starting with a prefix requires a costly linear scan. 🧩
+
+The solution? The **Trie** (pronounced "try" or "Prefix Tree"). A Trie is a tree-like data structure where characters are stored level by level along paths, allowing us to find matching prefixes in time proportional only to the prefix length! 🚀
+
+---
+
+## 🧩 The Problem
+
+> Implement a trie (prefix tree) with `insert`, `search`, and `startsWith` methods.
+
+### Example
+**Input:** `["Trie", "insert", "search", "search", "startsWith", "insert", "search"]`
+**Args:** `[[], ["apple"], ["apple"], ["app"], ["app"], ["app"], ["app"]]`
+
+**Output:** `[null, null, true, false, true, null, true]`
+
+**Explanation:**
+```python
+trie = Trie()
+trie.insert("apple")
+trie.search("apple")   # return True
+trie.search("app")     # return False (path exists, but not marked as word end)
+trie.startsWith("app") # return True  (path exists)
+trie.insert("app")
+trie.search("app")     # return True  (now marked as word end)
+```
+
+---
+
+## 🔍 Visualizing Trie Operations
+
+Let's look at how the Trie structure grows after we insert `"apple"` and `"app"`.
+
+```text
+(root)
+  └── a
+       └── p
+            └── p*  <-- "app" ends here (is_end = True)
+                 └── l
+                      └── e*  <-- "apple" ends here (is_end = True)
+```
+
+| Operation | Word/Prefix | Path Traversed | End State Check | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| **`insert`** | `"apple"` | `a -> p -> p -> l -> e` | Marks `e` as end | Created path |
+| **`search`** | `"apple"` | `a -> p -> p -> l -> e` | Checks `e.is_end` | `True` ✅ |
+| **`search`** | `"app"` | `a -> p -> p` | Checks `p.is_end` | `False` (before inserting "app") |
+| **`startsWith`** | `"app"` | `a -> p -> p` | Path exists? | `True` ✅ |
+
+---
+
+## 🛠️ Approach 1: The Standard Object-Oriented Trie
+
+The textbook way to implement a Trie is to create a custom node class (`TrieNode`) which holds a dictionary of children and a boolean flag (`is_end`).
+
+```python
+class TrieNode(object):
+    def __init__(self):
+        # A dictionary mapping characters to TrieNode instances
+        self.children = {}
+        self.is_end = False
+
+class Trie(object):
+
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word):
+        """
+        :type word: str
+        :rtype: None
+        """
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNode()
+            node = node.children[ch]
+        node.is_end = True
+
+    def search(self, word):
+        """
+        :type word: str
+        :rtype: bool
+        """
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                return False
+            node = node.children[ch]
+        return node.is_end
+
+    def startsWith(self, prefix):
+        """
+        :type prefix: str
+        :rtype: bool
+        """
+        node = self.root
+        for ch in prefix:
+            if ch not in node.children:
+                return False
+            node = node.children[ch]
+        return True
+```
+
+This is highly readable, modular, and standard. It gets **77.8% runtime beats** on LeetCode. But can we make it faster? 🔄
+
+---
+
+## 🚀 Approach 2: The Ultra-Optimized Python Dict Trie (Beating 95%+)
+
+If you want to absolutely dominate performance on Python Trie problems, you want to eliminate custom classes entirely. 
+
+### Why Nested Dicts Win 🐍
+Plain dictionaries are heavily optimized in CPython. By removing the custom `TrieNode` wrapper, we avoid class instantiation overhead and memory dereferencing delays. We can represent our entire Trie using **nested dictionaries** and a special marker (like `'$'`) to represent the end of a word.
+
+```python
+class Trie(object):
+
+    def __init__(self):
+        # The entire tree is just a plain, nested dictionary!
+        self.trie = {}
+
+    def insert(self, word):
+        """
+        :type word: str
+        :rtype: None
+        """
+        node = self.trie
+        for ch in word:
+            if ch not in node:
+                node[ch] = {}
+            node = node[ch]
+        node['$'] = True  # '$' functions as the is_end marker
+
+    def search(self, word):
+        """
+        :type word: str
+        :rtype: bool
+        """
+        node = self.trie
+        for ch in word:
+            if ch not in node:
+                return False
+            node = node[ch]
+        return '$' in node
+
+    def startsWith(self, prefix):
+        """
+        :type prefix: str
+        :rtype: bool
+        """
+        node = self.trie
+        for ch in prefix:
+            if ch not in node:
+                return False
+            node = node[ch]
+        return True
+```
+
+This simple shift slashes runtime dramatically, frequently hitting **95%+ on LeetCode**.
+
+---
+
+## ⏱️ Complexity Analysis
+
+For both implementations, the complexities are identical, but the constant factors in the nested-dictionary approach are significantly smaller!
+
+| Operation | Time Complexity | Space Complexity | Rating | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **`insert`** | $O(L)$ | $O(L)$ | 🏆 Optimal | $L$ is the word length. We may need to allocate up to $L$ new nodes. |
+| **`search`** | $O(L)$ | $O(1)$ | 🏆 Optimal | We traverse the tree at most $L$ times. |
+| **`startsWith`** | $O(P)$ | $O(1)$ | 🏆 Optimal | $P$ is the prefix length. We only follow $P$ links. |
+
+---
+
+## 🧠 How to Recognize This Pattern
+
+Keep an eye out for these requirements in coding interviews:
+1. **Autocomplete or Typeahead Search**: Checking for strings matching a prefix dynamic query.
+2. **Spell Checking / Dictionary matching**: Checking if subsegments form valid dictionary words.
+3. **Prefix/Suffix Operations**: Performing match queries starting from either end of a string.
+
+This pattern appears in:
+- [Design Add and Search Words Data Structure](https://leetcode.com/problems/design-add-and-search-words-data-structure/) (LeetCode 211)
+- [Word Search II](https://leetcode.com/problems/word-search-ii/) (LeetCode 212)
+- [Replace Words](https://leetcode.com/problems/replace-words/) (LeetCode 648)
+
+---
+
+## 🎯 Interview Tips
+
+1. **Trade-offs of Trie vs Hash Table**: Be prepared to explain *why* you chose a Trie. While a Hash Table has $O(1)$ search, it does not support prefix matching (`startsWith`) in $O(\text{prefix length})$ time, nor does it share prefixes to save memory when storing many similar strings.
+2. **CPython Optimization**: Discussing how avoiding object instantiation by using raw nested dictionaries speeds up Python execution demonstrates a deep, language-specific runtime knowledge. 
+3. **Character Array vs Dictionary**: You can also implement Trie nodes using a size-26 array (e.g. `[None] * 26`) since inputs are constrained to lowercase English letters. Explain that a **dictionary** is often preferred in production because it supports any character set (Unicode) and saves space when nodes have few children!
+

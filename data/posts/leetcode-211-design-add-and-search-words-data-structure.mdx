@@ -12,7 +12,7 @@ tag:
   - DFS
   - interview
 prev: leetcode-11-container-with-most-water
-next: graphics-template
+next: leetcode-208-implement-trie-prefix-tree
 ---
 
 <div class="iframe-container">
@@ -141,4 +141,3 @@ This same pattern is used in:
 1. **Pythonic Optimization:** Mention that you're using nested dictionaries instead of a `TrieNode` class to reduce object creation overhead. It shows you understand language-specific performance.
 2. **The Base Case:** Be careful with the DFS base case. Matching the length of the string isn't enough; you must also check if the current node is marked as the end of a word (`'$'`).
 3. **Read Constraints:** Notice the "at most 2 dots" constraint. This tells you that a recursive DFS approach won't lead to a TLE (Time Limit Exceeded) because the branching factor is small. 🔄
-

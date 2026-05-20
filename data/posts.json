@@ -786,5 +786,20 @@
             "DFS",
             "interview"
         ]
+    },
+    {
+        "id": 54,
+        "title": "LeetCode 208: Implement Trie (Prefix Tree)",
+        "subtitle": "Understand how to design and build a highly optimized prefix tree from scratch in Python.",
+        "slug": "leetcode-208-implement-trie-prefix-tree",
+        "date": "2026-05-20",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "Trie",
+            "Design",
+            "interview"
+        ]
     }
 ]
