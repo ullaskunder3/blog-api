@@ -11,7 +11,7 @@ tag:
   - Design
   - interview
 prev: leetcode-211-design-add-and-search-words-data-structure
-next: graphics-template
+next: leetcode-118-pascal-s-triangle
 ---
 
 <div class="iframe-container">
@@ -212,4 +212,3 @@ This pattern appears in:
 1. **Trade-offs of Trie vs Hash Table**: Be prepared to explain *why* you chose a Trie. While a Hash Table has $O(1)$ search, it does not support prefix matching (`startsWith`) in $O(\text{prefix length})$ time, nor does it share prefixes to save memory when storing many similar strings.
 2. **CPython Optimization**: Discussing how avoiding object instantiation by using raw nested dictionaries speeds up Python execution demonstrates a deep, language-specific runtime knowledge. 
 3. **Character Array vs Dictionary**: You can also implement Trie nodes using a size-26 array (e.g. `[None] * 26`) since inputs are constrained to lowercase English letters. Explain that a **dictionary** is often preferred in production because it supports any character set (Unicode) and saves space when nodes have few children!
-

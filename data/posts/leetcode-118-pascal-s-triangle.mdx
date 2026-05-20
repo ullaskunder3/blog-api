@@ -1,0 +1,161 @@
+---
+title: 'LeetCode 118: Pascal''s Triangle'
+subtitle: Deep dive into constructing Pascal's Triangle with O(n^2) time and optimal memory efficiency in Python.
+id: 55
+date: '2026-05-20'
+tag:
+  - leetcode
+  - python
+  - dsa
+  - array
+  - dynamic-programming
+  - interview
+prev: leetcode-208-implement-trie-prefix-tree
+next: graphics-template
+---
+
+<div class="iframe-container">
+  <iframe width="100%" height="400" src="https://leetcode.com/problems/pascals-triangle/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" loading="lazy" allowfullscreen></iframe>
+</div>
+
+Generating Pascal's Triangle is a classic problem that serves as an excellent introduction to two key concepts: **Array manipulation** and **Dynamic Programming (DP)**. While the mathematical rules of the triangle are simple, there is a substantial difference in how we implement the array construction in Python to optimize execution and memory. 📐
+
+In this post, we'll dive into how to construct Pascal's Triangle efficiently, comparing an intuitive array-preallocation method with an ultra-clean, memory-optimized dynamic list-building approach. 🚀
+
+---
+
+## 🧩 The Problem
+
+> Given an integer `numRows`, return the first `numRows` of Pascal's triangle.
+>
+> In Pascal's triangle, each number is the sum of the two numbers directly above it.
+
+### Example
+**Input:** `numRows = 5`
+
+**Output:**
+```json
+[
+     [1],
+    [1,1],
+   [1,2,1],
+  [1,3,3,1],
+ [1,4,6,4,1]
+]
+```
+
+---
+
+## 🔍 Visualizing the Construction (Dry Run for `numRows = 5`)
+
+To build row `i`, we look at row `i - 1`. The value at index `j` is computed by taking the values at `j - 1` and `j` from the previous row:
+
+$$\text{row}[j] = \text{prev\_row}[j-1] + \text{prev\_row}[j]$$
+
+| Row (i) | Initialized Row | Inner Calculations | Final Row |
+| :--- | :--- | :--- | :--- |
+| **0** | `[1]` | None (Base case) | `[1]` |
+| **1** | `[1]` | None (Ends with `1`) | `[1, 1]` |
+| **2** | `[1]` | `prev[0] + prev[1] = 1 + 1 = 2` | `[1, 2, 1]` |
+| **3** | `[1]` | `1+2 = 3`, `2+1 = 3` | `[1, 3, 3, 1]` |
+| **4** | `[1]` | `1+3 = 4`, `3+3 = 6`, `3+1 = 4` | `[1, 4, 6, 4, 1]` |
+
+---
+
+## 🛠️ Approach 1: Pre-Allocating Rows
+
+The most intuitive way to build the rows is to pre-allocate an array of size `i + 1` filled with `1`s, and then overwrite the middle indexes with the sum of the elements from the previous row.
+
+```python
+class Solution(object):
+    def generate(self, numRows):
+        """
+        :type numRows: int
+        :rtype: List[List[int]]
+        """
+        triangle = []
+
+        for i in range(numRows):
+            # Pre-allocate row with 1s of correct size
+            row = [1] * (i + 1)
+
+            # Calculate and overwrite middle values
+            for j in range(1, i):
+                row[j] = triangle[i - 1][j - 1] + triangle[i - 1][j]
+
+            triangle.append(row)
+
+        return triangle
+```
+
+### ⚠️ The Memory Trade-off
+While this approach is easy to write and achieves a **100% runtime score** (0ms), pre-allocating lists in Python introduces slight memory overhead because it reserves block sizes ahead of time. This gets a **~28% memory beat** on LeetCode. 
+
+Can we optimize this to get a much higher memory score? 🔄
+
+---
+
+## 🚀 Approach 2: Memory-Optimized Dynamic List Building (Beating 94%+)
+
+By starting with a base row of `[1]`, dynamically appending calculated middle sums, and then capping the row with a final `.append(1)`, we avoid the overhead of pre-allocation. This clean builder pattern optimizes Python's internal memory footprint!
+
+```python
+class Solution(object):
+    def generate(self, numRows):
+        """
+        :type numRows: int
+        :rtype: List[List[int]]
+        """
+        # Base case: start with the first row
+        res = [[1]]
+        
+        # Loop through each row from 1 to numRows (exclusive)
+        for i in range(1, numRows):
+            # Start the current row with 1
+            row = [1]
+            
+            # Calculate the middle elements
+            for j in range(1, i):
+                row.append(res[i - 1][j - 1] + res[i - 1][j])
+            
+            # Append 1 to close the row boundary
+            row.append(1)
+            
+            res.append(row)
+        
+        return res
+```
+
+This simple change keeps the **100% execution speed (0ms)** while boosting our memory efficiency to **94.36% beats**!
+
+---
+
+## ⏱️ Complexity Analysis
+
+| Complexity | Rating | Description |
+| :--- | :--- | :--- |
+| **Time Complexity** | $O(N^2)$ | $N$ is the number of rows. The total number of elements generated is $\frac{N(N+1)}{2}$. |
+| **Space Complexity** | $O(N^2)$ | 🏆 Optimal | We must allocate space to store the $\frac{N(N+1)}{2}$ elements returned. |
+
+---
+
+## 🧠 How to Recognize This Pattern
+
+Look for these characteristics in dynamic programming/combinatorial problems:
+1. **Grid Paths / Directed Traversal**: Moving in a grid where each state depends on the cells above/left of it.
+2. **Combination Calculations**: Computing $n \choose k$ values recursively (since Pascal's Triangle directly maps to binomial coefficients).
+3. **Overlapping Subproblems**: Solving a larger problem by combining the results of smaller, already-calculated subproblems.
+
+This pattern is also present in:
+- [Pascal's Triangle II](https://leetcode.com/problems/pascals-triangle-ii/) (LeetCode 119)
+- [Unique Paths](https://leetcode.com/problems/unique-paths/) (LeetCode 62)
+- [Climbing Stairs](https://leetcode.com/problems/climbing-stairs/) (LeetCode 70)
+
+---
+
+## 🎯 Interview Tips
+
+1. **Space Optimization**: If an interviewer asks you to return *only* the $k$-th row instead of the entire triangle, show them how to optimize the space complexity down to **$O(K)$** by updating a single array in-place!
+2. **Boundary Checks**: Always check for edge cases where `numRows = 1` or `numRows = 0`. Our second approach handles `numRows = 1` perfectly by initializing `res = [[1]]` and executing a `for` loop that never iterates.
+3. **Binomial Coefficient Intuition**: Connect Pascal's Triangle to mathematics. The value at index $j$ of row $i$ is mathematically equivalent to the combination $\binom{i}{j}$. This mathematical connection is highly impressive to interviewers!
+

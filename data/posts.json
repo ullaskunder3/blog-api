@@ -801,5 +801,20 @@
             "Design",
             "interview"
         ]
+    },
+    {
+        "id": 55,
+        "title": "LeetCode 118: Pascal's Triangle",
+        "subtitle": "Deep dive into constructing Pascal's Triangle with O(n^2) time and optimal memory efficiency in Python.",
+        "slug": "leetcode-118-pascal-s-triangle",
+        "date": "2026-05-20",
+        "tags": [
+            "leetcode",
+            "python",
+            "dsa",
+            "array",
+            "dynamic-programming",
+            "interview"
+        ]
     }
 ]
