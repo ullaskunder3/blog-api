@@ -1,0 +1,113 @@
+---
+title: Building a Resilient AI Bot for My Portfolio
+subtitle: 'Engineering "Richard": A Voice-Enabled, High-Availability AI Assistant'
+id: 56
+date: '2026-05-22'
+tag:
+  - AI
+  - React
+  - NextJS
+prev: leetcode-118-pascal-s-triangle
+next: graphics-template
+---
+
+# Building a Resilient AI Bot for My Portfolio
+
+Let's be honest: static portfolios can be a bit boring. When I was rethinking my personal site, I asked myself, *how can I make this space actually fun to visit?* More importantly, how can I show—not just tell—that I'm a developer who loves taking on complex challenges, experimenting with cutting-edge tech, and constantly growing?
+
+That's when I decided to build "Richard". 
+
+Richard isn't just a generic chatbot wrapper. It's a voice-enabled, highly resilient AI assistant embedded right into my portfolio. If a technical recruiter or an engineering lead drops by, Richard is there to answer questions about my skills, or even forward messages straight to my inbox.
+
+[this is where image goes]
+
+I want to take you under the hood. We'll look at the *what*, the *how*, and most importantly, the *why* behind the engineering decisions that make Richard tick.
+
+## 1. Shaping the Personality: The System Prompt
+
+**What:** Giving the bot a character.
+**How:** Through strict system instructions.
+**Why:** Left to their own devices, LLMs tend to be overly verbose. Nobody wants to read a five-paragraph essay on my React skills. 
+
+The "System prompt + short answer rules" pattern is how we actually shape bot personality. I explicitly instructed Richard with rules like: *"Keep it EXTREMELY short and punchy. Maximum 2 sentences. Explain tech simply using fast analogies."* This completely changed the interaction from a sterile "AI response" to a snappy, engaging conversation.
+
+## 2. Real-World Reliability: The Primary + Failover Pattern
+
+**What:** A dual-engine API.
+**How:** Using Groq (Llama 3.3) and falling back to Google Gemini.
+**Why:** If you rely on a single API endpoint, your app will eventually break. 
+
+In the backend (`/api/ai/route.ts`), I implemented a pattern that you see in large-scale enterprise systems: the "Primary engine + failover engine" reliability pattern. I **import** both the Groq and Gemini SDKs. Groq acts as the primary because of its blazing-fast inference speeds. 
+
+But what happens if the Groq **api** is down? We **handle** that **case** gracefully.
+
+```typescript
+// Catching the failure and falling back
+if (process.env.GROQ_API_KEY) {
+  try {
+    const groqReply = await handleGroqChat(message, history);
+    return NextResponse.json({ reply: groqReply, provider: "groq" });
+  } catch (groqError: any) {
+    console.error("Groq Primary Error:", groqError.message);
+    // Let it fall through to Gemini!
+  }
+}
+```
+
+If Groq fails, the system seamlessly redirects the request to Gemini. The frontend even throws a neat little toast notification: *"Groq is busy, seamlessly switched to Gemini API!"* Building for failure is a **best practice**, and it proves you're thinking about real-world edge cases.
+
+[this is where image goes]
+
+## 3. Beyond Chat: Tool Calling & Taking Action
+
+**What:** Allowing the AI to trigger server functions.
+**How:** Using LLM Function/Tool Calls.
+**Why:** A good bot answers questions; a great bot gets things done.
+
+The bot is not just a simple chat responder. By providing the model with a `send_message_to_ullas` tool definition, the AI realizes it can actually take action. If a user says, "I want to hire Ullas," Richard will automatically ask for their email and the message. Once provided, the AI triggers the tool, which executes a NodeMailer function on my server to send me a real email.
+
+This shifts the AI from a passive "knowledge base" to an active "assistant."
+
+## 4. Clean Code: Separating State from Logic
+
+**What:** Decoupling the UI from the API.
+**How:** The `useGeminiAgent` React hook.
+**Why:** Separating frontend state from backend logic keeps the bot easy to understand, test, and maintain.
+
+Instead of muddying my React components with `fetch` calls, everything is neatly tucked into a custom hook. Furthermore, I structured the chat history carefully. The UI isn't just rendering plain strings; user and bot messages are tracked as stateful objects (`{ id, role, text }`). 
+
+```typescript
+export type Message = {
+  id: string;
+  role: "user" | "ai";
+  text: string;
+};
+```
+
+This object-based approach makes mapping messages to the UI a breeze and allows for Optimistic UI updates. When you hit send, your message object appears instantly while the AI "thinks" in the background.
+
+## 5. Protecting the Fortress: Rate Limiting
+
+**What:** Saving the API from abuse.
+**How:** An in-memory Map tracking IPs and timestamps.
+**Why:** APIs cost money, and public endpoints are vulnerable.
+
+To prevent spam, I added a lightweight rate limiter. It allows 5 requests per minute per IP. If you exceed it, Richard politely tells you to slow down. It's a simple mechanism, but it demonstrates an understanding of backend security and resource protection.
+
+[this is where image goes]
+
+## 6. What's Next? Voice Interactions & Claude Handoff
+
+Typing is great, but speaking is magical. I've already wired up a `useSpeechRecognition.ts` hook that uses the browser's native capabilities to listen and automatically send messages when a 1.5-second silence is detected. 
+
+But I am planning to take this a step further. I am currently working on a **Claude-style conversational handoff feature**, utilizing the Web Audio API for an incredibly fluid, interruptible audio experience. 
+
+I'll be doing a deep dive into that specific audio architecture in my next blog post, so stay tuned!
+
+## Wrapping Up
+
+Building Richard was an incredibly rewarding experience. It pushed me to explore LLM tool calling, failover architectures, and custom React hooks. More than anything, it's a reflection of my philosophy as a developer: I am a constantly growing learner who loves transforming complex concepts into delightful user experiences.
+
+Go ahead, drop by my portfolio and say hi to Richard!
+
+[this is where image goes]

@@ -816,5 +816,17 @@
             "dynamic-programming",
             "interview"
         ]
+    },
+    {
+        "id": 56,
+        "title": "Building a Resilient AI Bot for My Portfolio",
+        "subtitle": "Engineering 'Richard': A Voice-Enabled, High-Availability AI Assistant",
+        "slug": "building-a-resilient-ai-bot-for-my-portfolio",
+        "date": "2026-05-22",
+        "tags": [
+            "AI",
+            "React",
+            "NextJS"
+        ]
     }
 ]
