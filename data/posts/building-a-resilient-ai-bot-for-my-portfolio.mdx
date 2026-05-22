@@ -2,7 +2,7 @@
 title: Building a Resilient AI Bot for My Portfolio
 subtitle: 'Engineering "Richard": A Voice-Enabled, High-Availability AI Assistant'
 id: 56
-date: '2026-05-22'
+date: "2026-05-22"
 tag:
   - AI
   - React
@@ -13,68 +13,121 @@ next: graphics-template
 
 # Building a Resilient AI Bot for My Portfolio
 
-Let's be honest: static portfolios can be a bit boring. When I was rethinking my personal site, I asked myself, *how can I make this space actually fun to visit?* More importantly, how can I show—not just tell—that I'm a developer who loves taking on complex challenges, experimenting with cutting-edge tech, and constantly growing?
+Most developer portfolios are static pages — a list of projects, a contact form, and not much else. The question that drove this project was straightforward: *can a portfolio itself demonstrate production-grade engineering?*
 
-That's when I decided to build "Richard". 
+This article documents the architecture of "Richard", an AI-powered conversational assistant embedded directly into my portfolio site. It covers dual-provider failover, LLM tool orchestration for real-world side effects (email delivery), modular React state management, rate limiting, and voice input — the same patterns used in production systems at scale.
 
-Richard isn't just a generic chatbot wrapper. It's a voice-enabled, highly resilient AI assistant embedded right into my portfolio. If a technical recruiter or an engineering lead drops by, Richard is there to answer questions about my skills, or even forward messages straight to my inbox.
+### Core Competencies Demonstrated
 
-[this is where image goes]
+- **LLM Failover Architecture** — Primary/fallback provider pattern with zero user-visible interruption
+- **Tool Calling / Function Calling** — AI-triggered server-side actions (email via NodeMailer)
+- **React Custom Hooks** — Decoupled state management (`useGeminiAgent`, `useSpeechRecognition`, `useSound`)
+- **Rate Limiting** — IP-based abuse prevention (5 req/min, 429 response)
+- **Voice UI Integration** — Web Speech API with silence detection and auto-restart
+- **Next.js API Routes** — Serverless backend handling multi-provider orchestration
 
-I want to take you under the hood. We'll look at the *what*, the *how*, and most importantly, the *why* behind the engineering decisions that make Richard tick.
+![image](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/ai-banner.png)
 
-## 1. Shaping the Personality: The System Prompt
+## System Architecture
 
-**What:** Giving the bot a character.
-**How:** Through strict system instructions.
-**Why:** Left to their own devices, LLMs tend to be overly verbose. Nobody wants to read a five-paragraph essay on my React skills. 
+Before diving into each component, here is how the pieces fit together:
 
-The "System prompt + short answer rules" pattern is how we actually shape bot personality. I explicitly instructed Richard with rules like: *"Keep it EXTREMELY short and punchy. Maximum 2 sentences. Explain tech simply using fast analogies."* This completely changed the interaction from a sterile "AI response" to a snappy, engaging conversation.
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Browser (Client)                                           │
+│                                                             │
+│  ┌──────────────────┐  ┌────────────────────────────────┐   │
+│  │ useSpeechRecog.  │──│ useGeminiAgent                 │   │
+│  │ (Voice Input)    │  │ (State: messages[], provider)  │   │
+│  └──────────────────┘  └──────────┬─────────────────────┘   │
+│                                   │ POST /api/ai            │
+└───────────────────────────────────┼─────────────────────────┘
+                                    │
+┌───────────────────────────────────┼─────────────────────────┐
+│  Next.js API Route (/api/ai)     ▼                          │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Rate Limiter (5 req/min/IP → 429)                  │    │
+│  └─────────────────────┬───────────────────────────────┘    │
+│                        │                                    │
+│           ┌────────────▼────────────┐                       │
+│           │   Groq (Primary)        │                       │
+│           │   Llama 3.3 70B         │                       │
+│           │   ~300ms inference      │                       │
+│           └────────┬───────┬────────┘                       │
+│              OK ───┘       └─── Error                       │
+│              │                    │                          │
+│              ▼                    ▼                          │
+│         Return reply     ┌──────────────────┐               │
+│         provider:"groq"  │ Gemini (Fallback) │              │
+│                          │ Gemini 2.5 Flash   │             │
+│                          └────────┬─────────┘               │
+│                                   │                         │
+│                              Return reply                   │
+│                              provider:"gemini_failover"     │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Tool Call: send_message_to_ullas                   │    │
+│  │  → NodeMailer → Gmail SMTP → Developer inbox        │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
 
-## 2. Real-World Reliability: The Primary + Failover Pattern
+## 1. System Prompt Design: Constraining LLM Output
 
-**What:** A dual-engine API.
-**How:** Using Groq (Llama 3.3) and falling back to Google Gemini.
-**Why:** If you rely on a single API endpoint, your app will eventually break. 
+**Problem:** Unconstrained LLMs produce verbose, unfocused responses. A portfolio chatbot that outputs walls of text creates a poor user experience and wastes tokens.
 
-In the backend (`/api/ai/route.ts`), I implemented a pattern that you see in large-scale enterprise systems: the "Primary engine + failover engine" reliability pattern. I **import** both the Groq and Gemini SDKs. Groq acts as the primary because of its blazing-fast inference speeds. 
+**Decision:** The system prompt enforces strict behavioral rules — a maximum of 2 sentences per reply, simple analogies for technical concepts, and a specific conversation flow for contact requests.
 
-But what happens if the Groq **api** is down? We **handle** that **case** gracefully.
+**Tradeoff:** Aggressive brevity occasionally clips nuanced answers. This is an acceptable tradeoff for a portfolio assistant where speed and personality matter more than depth.
+
+## 2. Dual-Engine Failover: Groq Primary, Gemini Fallback
+
+**Problem:** Relying on a single LLM provider introduces a single point of failure. Provider outages are unpredictable and can last minutes to hours.
+
+**Decision:** The service implements a primary/fallback pattern. Groq (Llama 3.3 70B) serves as the primary engine with inference latency averaging under 300ms. On any Groq failure, the error is caught and execution falls through to Google Gemini 2.5 Flash, with no user-visible interruption.
 
 ```typescript
-// Catching the failure and falling back
+// Primary attempt with graceful fallback
 if (process.env.GROQ_API_KEY) {
   try {
     const groqReply = await handleGroqChat(message, history);
     return NextResponse.json({ reply: groqReply, provider: "groq" });
   } catch (groqError: any) {
     console.error("Groq Primary Error:", groqError.message);
-    // Let it fall through to Gemini!
+    // Execution falls through to Gemini
   }
 }
+
+// Fallback engine
+const geminiReply = await fallbackToGemini(message, history, apiKey);
+return NextResponse.json({ reply: geminiReply, provider: "gemini_failover" });
 ```
 
-If Groq fails, the system seamlessly redirects the request to Gemini. The frontend even throws a neat little toast notification: *"Groq is busy, seamlessly switched to Gemini API!"* Building for failure is a **best practice**, and it proves you're thinking about real-world edge cases.
+The `provider` field in the response allows the frontend to notify the user transparently via a toast, without breaking the conversation flow.
 
-[this is where image goes]
+**Tradeoff:** Two providers means two SDKs, two system prompt formats, and two tool-calling implementations to maintain. The added complexity is justified by the reliability guarantee.
 
-## 3. Beyond Chat: Tool Calling & Taking Action
+![image](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/ai-active.png)
 
-**What:** Allowing the AI to trigger server functions.
-**How:** Using LLM Function/Tool Calls.
-**Why:** A good bot answers questions; a great bot gets things done.
+## 3. LLM Tool Calling: From Chat to Action
 
-The bot is not just a simple chat responder. By providing the model with a `send_message_to_ullas` tool definition, the AI realizes it can actually take action. If a user says, "I want to hire Ullas," Richard will automatically ask for their email and the message. Once provided, the AI triggers the tool, which executes a NodeMailer function on my server to send me a real email.
+**Problem:** A chatbot that only answers questions has limited utility. Visitors should be able to take meaningful action — such as sending a message to the developer — without leaving the conversation.
 
-This shifts the AI from a passive "knowledge base" to an active "assistant."
+**Decision:** Both providers are configured with a `send_message_to_ullas` function declaration. When a visitor expresses intent to contact, the LLM collects the sender's email and message through natural conversation, then triggers the tool call. The server executes the function by sending a real email via NodeMailer and Gmail SMTP.
 
-## 4. Clean Code: Separating State from Logic
+This is the critical difference between a demo chatbot and a functional assistant. The AI does not just respond — it orchestrates server-side actions with real-world effects.
 
-**What:** Decoupling the UI from the API.
-**How:** The `useGeminiAgent` React hook.
-**Why:** Separating frontend state from backend logic keeps the bot easy to understand, test, and maintain.
+![image](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/ai-mail.png)
 
-Instead of muddying my React components with `fetch` calls, everything is neatly tucked into a custom hook. Furthermore, I structured the chat history carefully. The UI isn't just rendering plain strings; user and bot messages are tracked as stateful objects (`{ id, role, text }`). 
+**Tradeoff:** Tool calls require careful prompt engineering to prevent false triggers. The tool description explicitly states it should only fire *after* the user provides both their email and message.
+
+## 4. Frontend State Management: Hook-Based Architecture
+
+**Problem:** Mixing API logic directly into React components creates tightly coupled, hard-to-test code.
+
+**Decision:** All conversation state is encapsulated in a `useGeminiAgent` custom hook, which exposes a clean interface: `messages`, `isLoading`, `sendMessage`, and `provider`. The component tree never touches `fetch` directly.
+
+Messages are modeled as typed objects rather than plain strings:
 
 ```typescript
 export type Message = {
@@ -84,30 +137,60 @@ export type Message = {
 };
 ```
 
-This object-based approach makes mapping messages to the UI a breeze and allows for Optimistic UI updates. When you hit send, your message object appears instantly while the AI "thinks" in the background.
+This enables **optimistic UI updates** — the user's message object is appended to state immediately on send, before the API responds. The conversation feels instant even when network latency is high.
 
-## 5. Protecting the Fortress: Rate Limiting
+When the backend switches to the fallback engine, the hook detects the `provider: "gemini_failover"` flag and triggers a non-blocking toast notification. The user is informed but never interrupted.
 
-**What:** Saving the API from abuse.
-**How:** An in-memory Map tracking IPs and timestamps.
-**Why:** APIs cost money, and public endpoints are vulnerable.
+**Tradeoff:** The hook currently manages both API communication and UI state. At greater complexity, these concerns could be split into separate hooks or migrated to a state machine (e.g., XState).
 
-To prevent spam, I added a lightweight rate limiter. It allows 5 requests per minute per IP. If you exceed it, Richard politely tells you to slow down. It's a simple mechanism, but it demonstrates an understanding of backend security and resource protection.
+## 5. Rate Limiting: Protecting a Public Endpoint
 
-[this is where image goes]
+**Problem:** A public AI endpoint without rate limiting is an open invitation for abuse — automated scripts can drain API quotas and inflate costs.
 
-## 6. What's Next? Voice Interactions & Claude Handoff
+**Decision:** An in-memory `Map<string, { count, lastReset }>` tracks requests per IP address. The limit is set to 5 requests per 60-second window. Exceeding the limit returns a `429 Too Many Requests` response with a user-friendly message.
 
-Typing is great, but speaking is magical. I've already wired up a `useSpeechRecognition.ts` hook that uses the browser's native capabilities to listen and automatically send messages when a 1.5-second silence is detected. 
+```typescript
+const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const RATE_LIMIT = 5;
+const TIME_WINDOW = 60 * 1000; // 1 minute
 
-But I am planning to take this a step further. I am currently working on a **Claude-style conversational handoff feature**, utilizing the Web Audio API for an incredibly fluid, interruptible audio experience. 
+if (rateData.count >= RATE_LIMIT) {
+  return NextResponse.json(
+    { reply: "Whoa, slow down there! Give me a minute to catch my breath." },
+    { status: 429 }
+  );
+}
+```
 
-I'll be doing a deep dive into that specific audio architecture in my next blog post, so stay tuned!
+**Tradeoff:** In-memory storage is simple but ephemeral — it resets on every serverless cold start and does not share state across multiple instances. This is addressed in the "Scaling Considerations" section below.
 
-## Wrapping Up
+## 6. Voice Input: Web Speech API Integration
 
-Building Richard was an incredibly rewarding experience. It pushed me to explore LLM tool calling, failover architectures, and custom React hooks. More than anything, it's a reflection of my philosophy as a developer: I am a constantly growing learner who loves transforming complex concepts into delightful user experiences.
+A `useSpeechRecognition` hook wraps the browser's native Speech Recognition API. It runs in continuous mode with interim results, and uses a **1500ms silence timer** to detect when the user has finished speaking. On silence, the accumulated transcript is automatically sent to the AI.
 
-Go ahead, drop by my portfolio and say hi to Richard!
+The hook also handles edge cases: microphone permission denial, `no-speech` timeouts with auto-restart, and pausing the mic while the AI response is in flight to prevent feedback loops.
 
-[this is where image goes]
+A companion `useSound` hook provides auditory feedback (message sent/received sounds), adding a tactile quality to the interaction.
+
+The next evolution of this feature is a **Claude-style conversational handoff** — a fully interruptible audio experience built on the Web Audio API. That architecture warrants its own deep dive, which will be covered in detail in an upcoming post.
+
+![image](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/ai-audio-live.png)
+
+## Scaling Considerations: What Changes at Production Scale
+
+The current implementation is intentionally scoped for a single-instance portfolio deployment. Here is what would change in a production environment:
+
+| Component | Current | At Scale |
+|---|---|---|
+| **Rate Limiter** | In-memory `Map` (resets on cold start) | Redis-backed (e.g., Upstash) with sliding window |
+| **Conversation History** | Client-side state, sent with each request | Server-side session store or database |
+| **Failover** | Sequential try/catch | Circuit breaker pattern with health checks |
+| **System Prompt** | Hardcoded string | Version-controlled prompt registry |
+| **Monitoring** | `console.error` | Structured logging + alerting (e.g., Sentry, Datadog) |
+
+These are deliberate engineering choices, not oversights. For a portfolio-scale deployment, the current approach optimizes for simplicity and fast iteration. Knowing *when* to introduce additional complexity is as important as knowing *how*.
+
+## Closing
+
+The complete implementation — API route, custom hooks, and configuration — is deployed and available for review on [my portfolio](https://ullaskunder.vercel.app). I welcome any questions or discussion about the architecture, design tradeoffs, or potential improvements.
+
