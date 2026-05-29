@@ -828,5 +828,18 @@
             "React",
             "NextJS"
         ]
+    },
+    {
+        "id": 57,
+        "title": "Why I Moved My Domains to Cloudflare (And Reconsidered My Entire Setup)",
+        "subtitle": "How recurring renewal issues, confusing domain management UX, and rising TLD costs pushed me to rethink my infrastructure setup.",
+        "slug": "why-i-moved-my-domains-to-cloudflare-and-reconsidered-my-entire-setup",
+        "date": "2026-05-29",
+        "tags": [
+            "cloudflare",
+            "domains",
+            "infrastructure",
+            "setup"
+        ]
     }
 ]

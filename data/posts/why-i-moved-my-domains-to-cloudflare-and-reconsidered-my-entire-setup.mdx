@@ -1,0 +1,207 @@
+---
+title: Why I Moved My Domains to Cloudflare (And Reconsidered My Entire Setup)
+subtitle: 'How recurring renewal issues, confusing domain management UX, and rising TLD costs pushed me to rethink my infrastructure setup.'
+id: 57
+date: '2026-05-29'
+tag:
+  - cloudflare
+  - domains
+  - infrastructure
+  - setup
+prev: building-a-resilient-ai-bot-for-my-portfolio
+next: graphics-template
+---
+
+# Why I Moved My Domains to Cloudflare (And Reconsidered My Entire Setup)
+
+For the past few years, I had two domains managed through [Squarespace Domains](https://domains.squarespace.com):
+
+| Domain             | Renewal Price         |
+| ------------------ | --------------------- |
+| `iprofile.dev`     | ₹860/year (~$9.03)    |
+| `ullaskunder.tech` | ₹2,870/year (~$30.14) |
+
+Initially, everything seemed fine. The domains worked, renewals were enabled, and payment information was already saved.
+
+But over time, the overall experience became increasingly frustrating — not because of one catastrophic issue, but because of repeated operational friction around basic account management.
+
+Every year during renewal season, I would receive the same notification:
+
+> “Payment is Past Due. One or more charges to your account have failed.”
+
+Even though:
+
+* auto-renewal was enabled
+* payment information was already stored
+* the same card had worked previously
+* the domains had been renewed successfully in prior years
+
+Clicking “Resolve” would open a dashboard with several options like:
+
+* update payment information
+* invoices
+* billing settings
+
+…but it often led into a confusing loop without clearly explaining what had actually failed or what action was required.
+
+The issue itself was manageable.
+
+The problem was the overall experience around it.
+
+When infrastructure tooling creates uncertainty around something as important as domain ownership and renewal, trust starts to erode quickly.
+
+
+# Email Forwarding Was the Final Push
+
+Another issue that slowly reduced my confidence was email forwarding.
+
+At one point, I started receiving emails that appeared to come from my own domain address:
+
+`contact@ullaskunder.tech`
+
+The messages were unexpected, repetitive, and confusing enough that it became difficult to tell whether the issue was forwarding behavior, spoofed emails, or a configuration problem somewhere in the chain.
+
+There may have been a valid technical explanation behind it.
+
+But the bigger issue was visibility.
+
+The platform did not make it easy to understand:
+
+* what exactly was happening
+* how forwarding was being processed
+* whether the setup was secure
+* or how to properly troubleshoot it
+
+Over time, I decided to disable email forwarding entirely.
+
+For infrastructure products, transparency matters a lot.
+
+Even if an issue is technically harmless, unclear tooling and limited operational visibility can quickly reduce confidence in the platform.
+
+# The UI/UX Problem Nobody Talks About
+
+One thing I underestimated before managing domains long-term was how important operational UX actually is.
+
+Good infrastructure products reduce cognitive overhead.
+
+Bad ones make even simple tasks feel unnecessarily stressful.
+
+Over time, the [Squarespace Domains](https://domains.squarespace.com?utm_source=chatgpt.com) experience started feeling difficult to navigate:
+
+* billing flows felt unclear
+* account actions were fragmented
+* domain management lacked transparency
+* the dashboard felt more marketing-oriented than operational
+
+The email forwarding setup also created confusion at one point when I began receiving unexpected forwarded emails appearing to originate from my own domain address. While there may have been a technical explanation behind it, the lack of visibility and clarity around the configuration made troubleshooting uncomfortable enough that I eventually disabled forwarding entirely.
+
+None of these issues alone were deal-breakers.
+
+But collectively, they made domain management feel less reliable than it should.
+
+# Looking Into Cloudflare Registrar
+
+I already had one domain on [Cloudflare Registrar](https://www.cloudflare.com/products/registrar/?utm_source=chatgpt.com):
+
+`xforbes.com`
+
+Compared to my previous experience, the workflow felt significantly cleaner:
+
+* straightforward DNS management
+* better infrastructure visibility
+* fewer upsells
+* more developer-focused tooling
+* tight integration with deployment platforms
+
+So naturally, I started considering transferring everything over.
+
+Then I checked the pricing.
+
+# Cloudflare’s “At-Cost Pricing” Explained
+
+Cloudflare is widely known for its “at-cost” registrar pricing model.
+
+That statement is accurate — but it does not automatically mean every domain will be cheaper.
+
+Here’s the comparison I found:
+
+| Domain             | Squarespace      | Cloudflare       |
+| ------------------ | ---------------- | ---------------- |
+| `iprofile.dev`     | ₹860 (~$9.03)    | ₹1,161 (~$12.20) |
+| `ullaskunder.tech` | ₹2,870 (~$30.14) | ₹4,684 (~$49.20) |
+
+(Conversion based on ~$1 = ₹95.21)
+
+The difference becomes especially noticeable with niche TLDs like `.tech`.
+
+Cloudflare does not heavily discount registry pricing. Instead, it passes through the registry cost directly with minimal markup.
+
+In contrast, some registrars appear to subsidize or discount certain TLDs as part of broader platform offerings.
+
+That realization led me to rethink something more fundamental:
+
+Did I actually want to keep paying premium renewal pricing for a `.tech` domain long-term?
+
+# Reconsidering My Domain Strategy
+
+At that point, I decided not to transfer everything blindly.
+
+Instead:
+
+* I continued using `xforbes.com` for my product ecosystem
+* I started moving away from `ullaskunder.tech`
+* I decided a standard `.com` domain made more sense for long-term personal branding
+
+The `.com` route was:
+
+* cheaper
+* simpler
+* easier to communicate
+* more universally recognized
+
+Sometimes infrastructure decisions are less about technical capability and more about long-term operational practicality.
+
+# The Part That Actually Went Smoothly
+
+The migration experience between [Vercel](https://vercel.com?utm_source=chatgpt.com) and [Cloudflare](https://www.cloudflare.com?utm_source=chatgpt.com) was surprisingly clean.
+
+Inside Vercel, I added:
+
+`xforbes.com`
+
+Initially, the dashboard showed:
+
+* “Invalid Configuration”
+* required DNS changes
+* pending SSL generation
+
+Vercel then provided an “Add Configuration” flow that redirected directly into Cloudflare.
+
+After verifying the DNS entries, Cloudflare applied the required records automatically.
+
+A few minutes later:
+
+* DNS propagated successfully
+* SSL certificates were generated
+* redirects started working
+* deployment became active in production
+
+Compared to previous registrar experiences, the workflow felt much more infrastructure-oriented and predictable.
+
+# Final Thoughts
+
+This started as a simple attempt to reduce renewal costs.
+
+Instead, it turned into a broader reassessment of:
+
+* registrar reliability
+* operational UX
+* infrastructure ownership
+* DNS management
+* long-term domain strategy
+
+Pricing matters.
+
+But confidence in the tooling matters too.
+
+When the systems responsible for your domains feel transparent, predictable, and operationally focused, managing infrastructure becomes significantly less stressful.
