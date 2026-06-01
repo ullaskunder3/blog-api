@@ -841,5 +841,19 @@
             "infrastructure",
             "setup"
         ]
+    },
+    {
+        "id": 58,
+        "title": "Building Pin-Tube: How I Created a Chrome Extension to Pin YouTube Videos and Stop Doomscrolling",
+        "subtitle": "A deep dive into building a Vanilla JS Chrome extension, resolving scary permission warnings, and creating a distraction-free YouTube experience.",
+        "slug": "building-pin-tube-how-i-created-a-chrome-extension-to-pin-youtube-videos-and-stop-doomscrolling",
+        "date": "2026-06-01",
+        "tags": [
+            "chrome-extension",
+            "productivity",
+            "javascript",
+            "web-development",
+            "build-in-public"
+        ]
     }
 ]
