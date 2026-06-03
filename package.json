@@ -6,7 +6,8 @@
   "scripts": {
     "new": "node scripts/new-post.js",
     "last": "node scripts/last-post.js",
-    "post": "node scripts/info-post.js"
+    "post": "node scripts/info-post.js",
+    "add-cdn-url": "node scripts/add-cdn-url.js"
   },
   "keywords": [
     "blog",

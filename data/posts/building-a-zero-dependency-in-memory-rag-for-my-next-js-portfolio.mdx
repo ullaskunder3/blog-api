@@ -20,7 +20,7 @@ next: graphics-template
 
 When I recently integrated an AI chatbot into my personal portfolio, I was excited to see it working. But the excitement faded quickly when I tested it. If I asked, "What is Ullas's latest project?" or "Where is his blog post on Chrome extensions?", the bot would hallucinate a generic response. It was a cool feature, but it lacked the most important thing: context about *me*.
 
-![hallucinate-ai-response](../img/rag/hallucinate-ai.png)
+![hallucinate-ai-response](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/rag/hallucinate-ai.png)
 
 I needed a way to feed my actual portfolio data and blog posts into the AI. The industry-standard solution for this is **Retrieval-Augmented Generation (RAG)**. 
 
@@ -38,7 +38,7 @@ To do this without a database, I split the work into two distinct phases:
 1. **Offline Preparation:** Preparing the data locally on my machine.
 2. **Runtime Execution:** Searching the data quickly on the live server.
 
-![rag-architecture](../img/rag/phase.png)
+![rag-architecture](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/rag/phase.png)
 
 ## Phase 1: Preparing the Data Offline 
 
@@ -86,7 +86,7 @@ Because Node.js is incredibly fast at array iterations, this entire search proce
 **3. Extracting the Top Results**
 We sort the similarity scores and pick the top 2 highest-scoring chunks. 
 
-![cosine-similarity](../img/rag/cosine-similarity.png)
+![cosine-similarity](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/rag/cosine-similarity.png)
 
 ## Phase 3: Prompt Injection (Talking to the LLM)
 
@@ -97,7 +97,7 @@ Instead, we take *only* the text from those top 2 matching chunks (which is just
 The prompt looks something like this:
 *"You are Richard, Ullas's AI assistant. Use the following context to answer the user's question. Context: [Blog Title, Description, Link]."*
 
-![screenshot-rag-architecture](../img/rag/vector.png)
+![screenshot-rag-architecture](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/rag/vector.png)
 
 The LLM reads that tiny bit of relevant context, formulates a natural response, and formats the deep link nicely for the user.
 
