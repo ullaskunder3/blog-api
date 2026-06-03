@@ -855,5 +855,22 @@
             "web-development",
             "build-in-public"
         ]
+    },
+    {
+        "id": 59,
+        "title": "Building a Zero-Dependency, In-Memory RAG for My Next.js Portfolio",
+        "subtitle": "How I built a fully functional, context-aware AI chatbot for my portfolio using only local files and basic math — no vector databases, no external infrastructure.",
+        "slug": "building-a-zero-dependency-in-memory-rag-for-my-next-js-portfolio",
+        "date": "2026-06-03",
+        "tags": [
+            "nextjs",
+            "ai",
+            "rag",
+            "embeddings",
+            "vector-search",
+            "javascript",
+            "typescript",
+            "portfolio"
+        ]
     }
 ]
