@@ -872,5 +872,18 @@
             "typescript",
             "portfolio"
         ]
+    },
+    {
+        "id": 60,
+        "title": "Object-Oriented Go: Composition, Methods, and Interfaces",
+        "subtitle": "A student's guide to how Go handles objects, inheritance, and polymorphism differently than Java or C++.",
+        "slug": "object-oriented-go-composition-methods-and-interfaces",
+        "date": "2026-06-23",
+        "tags": [
+            "golang",
+            "oop",
+            "interfaces",
+            "computer-science"
+        ]
     }
 ]

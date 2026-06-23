@@ -1,0 +1,292 @@
+---
+title: "Object-Oriented Go: Composition, Methods, and Interfaces"
+subtitle: "A student's guide to how Go handles objects, inheritance, and polymorphism differently than Java or C++."
+id: 60
+date: '2026-06-23'
+tag:
+  - golang
+  - oop
+  - interfaces
+  - computer-science
+prev: building-a-zero-dependency-in-memory-rag-for-my-next-js-portfolio
+next: graphics-template
+---
+
+If you are learning Go after spending time with traditional object-oriented languages like Java, C++, or Python, your first question is probably: *Where are the classes? How do I extend an object?*
+
+Go intentionally omits traditional OOP features like `class` and `extends`. Instead, it replaces class hierarchies with three core mechanisms: **composition**, **method sets**, and **interfaces**.
+
+Let's break down how Go achieves object-oriented design without the class baggage.
+
+---
+
+## Go Is Not Really Object-Oriented
+
+Students coming from Java or C++ often leave with the impression: *"Oh, Go has OOP, just different syntax."*
+
+Not exactly. 
+
+Go borrows useful ideas from object-oriented programming, but it is not a traditional object-oriented language. The language designers intentionally avoided class hierarchies in favor of simple composition and interfaces.
+
+While Go supports **Encapsulation** (via package visibility), **Polymorphism** (via implicit interfaces), and **Composition** (via struct embedding), it completely lacks **Classes**, **Inheritance**, **Method Overloading**, **Constructors**, and **Virtual methods**. 
+
+Understanding this distinction is the key to writing idiomatic Go code instead of trying to write Java in Go.
+
+---
+
+## 1. Composition Over Inheritance (Has-A vs. Is-A)
+
+In traditional OOP, if a `Car` extends a `Vehicle`, you create a rigid parent-child tree (**Is-A** relationship). Go enforces **Composition over Inheritance** using a feature called **struct embedding**. Instead of an ElectricVehicle *being* a Vehicle, it *has* a Vehicle.
+
+```go
+package main
+
+import "fmt"
+
+type Vehicle struct {
+    Make  string
+    Model string
+}
+
+func (v Vehicle) Start() {
+    fmt.Println(v.Make, v.Model, "is starting...")
+}
+
+type ElectricVehicle struct {
+    Vehicle      // Anonymous struct embedding!
+    BatteryLevel int
+}
+
+func main() {
+    ev := ElectricVehicle{
+        Vehicle:      Vehicle{Make: "Tesla", Model: "Model 3"},
+        BatteryLevel: 100,
+    }
+
+    // Method Promotion
+    ev.Start() 
+
+    // Field Promotion (Accessing Make directly without ev.Vehicle.Make)
+    fmt.Println("This vehicle is a:", ev.Make) 
+}
+```
+
+### The Student "Gotcha": Name Shadowing
+What happens if both `ElectricVehicle` and `Vehicle` have a field named `Make`? Go doesn't throw a compiler error. Instead, the outer struct shadows the inner one.
+
+```go
+type ElectricVehicle struct {
+    Vehicle
+    Make string // Shadows Vehicle.Make
+}
+```
+`ev.Make` accesses the outer string. `ev.Vehicle.Make` is required to access the embedded string.
+
+---
+
+## 2. Method Sets & Receivers
+Go stores data in structs and attaches behavior through methods defined on those structs. You attach a method to a struct using a receiver, creating a Method Set.
+
+There are two types of receivers, and confusing them is a common exam mistake:
+
+```go
+type Counter struct {
+    count int
+}
+
+// 1. Value Receiver: operates on a COPY of the struct
+func (c Counter) Print() {
+    fmt.Println("Count is:", c.count)
+}
+
+// 2. Pointer Receiver: operates on the ORIGINAL memory address
+func (c *Counter) Increment() {
+    c.count++
+}
+```
+
+**Rule of Thumb for Assignments:** Use a Pointer Receiver (`*Type`) if the method needs to mutate the data, or if the struct is large (to avoid copying overhead). Use a Value Receiver (`Type`) for read-only actions.
+
+### The Magic of Automatic Address-Taking
+
+Students often get confused by the following behavior:
+
+```go
+func main() {
+    c := Counter{count: 0}
+    c.Print()     // Value receiver: works
+    c.Increment() // Pointer receiver: wait, why does this compile?
+}
+```
+
+If `Increment` requires a pointer (`*Counter`), why does calling it on a value (`c`) work? 
+
+Because Go provides syntactic sugar. If the variable is addressable, the compiler automatically rewrites the call to take the pointer:
+
+```go
+c.Increment()
+
+// The compiler rewrites this roughly as:
+(&c).Increment()
+```
+
+Similarly, if you have a pointer `cp := &Counter{}` and call `cp.Print()`, Go automatically dereferences it as `(*cp).Print()`.
+
+> [!IMPORTANT]
+> This automatic conversion works for **direct method calls**, but it **does not** apply when satisfying interfaces. This distinction is the root of the most common Go interface trap.
+
+---
+
+## 3. Implicit Interfaces (Structural Typing)
+In Java, a class must explicitly state its allegiance: `class Dog implements Animal`. Go uses Structural Typing (often called compile-time "duck typing"). If a struct implements the methods defined by an interface, it satisfies the interface implicitly.
+
+```go
+type Engine interface {
+    StartEngine() string
+}
+
+type V8 struct{}
+// V8 implicitly implements Engine because it has the matching method signature
+func (v V8) StartEngine() string { return "V8 roaring!" }
+
+type ElectricMotor struct{}
+func (e ElectricMotor) StartEngine() string { return "Electric motor humming." }
+
+func Drive(e Engine) {
+    fmt.Println(e.StartEngine())
+}
+```
+
+### The Professor's Favorite Exam Trap: The Pointer Receiver Disconnect
+Look closely at this subtle error that trips up students during lab evaluations. If you implement an interface using a pointer receiver, only a pointer to that type satisfies the interface.
+
+```go
+type Opener interface { Open() }
+
+type File struct{}
+func (f *File) Open() {} // Pointer receiver!
+
+func main() {
+    var o1 Opener = &File{} // ✓ Works! A pointer is passed.
+    var o2 Opener = File{}  // ✗ COMPILE ERROR: File does not implement Opener (Open method has pointer receiver)
+}
+```
+
+### What is an Interface Value?
+
+Under the hood, an interface variable is not just a pointer. It is a header value that stores **two things**:
+1. **The Dynamic Type** (e.g., `V8` or `ElectricMotor`)
+2. **The Dynamic Value** (e.g., the actual struct instance `V8{}`)
+
+This dual nature is why you can query the type at runtime using `fmt.Printf("%T\n", e)`, and it forms the foundation for **type assertions** (`value, ok := e.(V8)`) and **type switches** (`switch v := e.(type)`).
+
+---
+
+## 4. The Golang Philosophy: "Accept Interfaces, Return Structs"
+CS students are often trained in Java to always return interfaces to create abstraction layers. In Go, the idiom is backward.
+
+**Go Proverb:** *"Accept interfaces, return concrete types."*
+
+Why? It leaves the abstraction decision to the consumer/caller rather than forcing it from the producer. By returning a concrete struct (like `*File`), any caller can choose to use it as an `io.Reader`, `io.Writer`, or just a `*File`. If the library returned an `io.Reader`, the caller would be blocked from using the `Write` methods even if the underlying struct supported it.
+
+---
+
+## 5. Interface Segregation (Why Go Interfaces Are Tiny)
+
+One of the most important design philosophies in Go is **Interface Segregation**. 
+
+In languages like Java or C++, interfaces are often large, containing many methods that describe a complete object's capabilities. For example:
+
+```go
+// ✗ Non-idiomatic Go: Giant, monolithic interface
+type Vehicle interface {
+    Start()
+    Stop()
+    Refuel()
+    Drive()
+    Park()
+}
+```
+
+In Go, large interfaces are discouraged. Instead, Go developers design **tiny interfaces**, often containing only a single method (like `io.Reader` or `io.Writer`). 
+
+```go
+// ✓ Idiomatic Go: Small, single-purpose interfaces
+type Starter interface {
+    Start()
+}
+
+type Driver interface {
+    Drive()
+}
+```
+
+If a function needs something that can both start and drive, Go allows you to **compose** interfaces:
+
+```go
+type Goable interface {
+    Starter
+    Driver
+}
+```
+
+This structural independence explains why Go's standard library is so flexible. By keeping interfaces tiny, they are much easier to implement and reuse across unrelated packages.
+
+---
+
+## 6. The `interface{}` / `any` Transition
+
+If you look at older Go codebases or textbooks, you will see `interface{}` everywhere. An empty interface `interface{}` defines zero methods, meaning *every type in Go* satisfies it.
+
+As of Go 1.18, `any` is a built-in alias for `interface{}`. Whenever you see `any` in modern code, it's the exact same thing as an empty interface, but much cleaner.
+
+However, `any` is used in two main ways today:
+
+1. **As a parameter type** (for functions that accept any value):
+   ```go
+   func Print(v any) {
+       fmt.Println(v)
+   }
+   ```
+2. **As a generic constraint** (for functions using Go Generics):
+   ```go
+   // Generic constraint: T can be any type
+   func Identity[T any](v T) T {
+       return v
+   }
+   ```
+
+Without this second context, students often think `any` is only used to create dynamic, dynamically typed parameters, when it is also the default constraint for compile-time generic types!
+
+---
+
+## What Go Intentionally Does NOT Support
+
+When preparing for exams or coding interviews, it is crucial to remember what Go intentionally leaves out to keep the language simple and readable:
+
+* **No Classes or Inheritance**: You only have structs, custom types, and composition.
+* **No Method Overloading**: You cannot define two functions or methods with the same name but different signatures in the same namespace.
+  ```go
+  // There is no method overloading in Go
+  func Add(a int, b int) int
+  func Add(a float64, b float64) float64 // ✗ COMPILE ERROR: Add redeclared in this package
+  ```
+* **No Constructor Keyword**: Go doesn't have a constructor keyword. Instead, the standard idiom is to write custom factory functions:
+  ```go
+  func NewCounter() *Counter {
+      return &Counter{count: 0}
+  }
+  ```
+* **No Virtual Methods**: Since there is no inheritance, there is no dynamic dispatch/virtual method tables in the traditional class-inheritance sense.
+* **No Exceptions**: Go doesn't use `try/catch`. Instead, it uses explicit error returns (e.g., `return value, err`), encouraging developers to handle errors immediately.
+
+---
+
+## Summary Sheet
+
+| Concept | Traditional OOP (Java/C++) | Go Approach |
+| :--- | :--- | :--- |
+| **Code Reuse** | Class Inheritance (`extends`) | Struct Embedding (Composition) |
+| **Polymorphism** | Explicit Interfaces (`implements`) | Implicit Interfaces (Structural Typing) |
+| **State Mutation** | `this` or `self` keywords | Explicit Receiver Variables (e.g. `c Counter`) |
+| **Method Overloading** | Fully supported | Not supported (methods must have unique names) |
