@@ -13,7 +13,7 @@ prev: object-oriented-go-composition-methods-and-interfaces
 next: graphics-template
 ---
 
-# From 0 and 1 to `int64`: The Complete Story of How Computers Count
+# From 0 and 1 to int64: The Complete Story of How Computers Count
 
 *A university student once asked me: "What is that signed and unsigned thing?"*
 
@@ -23,7 +23,14 @@ next: graphics-template
 
 *This one is for that student.*
 
----
+## References & Thanks
+
+I would like to express my gratitude to the authors of the following resources, which served as excellent reference materials and helped shape this post:
+
+- [SJSU: Bytes Lecture](http://www.cs.sjsu.edu/~pearce/modules/lectures/intro2CS/hierarchy/hardware/bytes)
+- [Medium: ASCII and Unicode — The Evolution of Computer Languages](https://medium.com/@fangjunyu.com/ascii-and-unicode-the-evolution-of-computer-languages-ad42ba089607)
+- [IME/USP: ASCII Appendix](https://www.ime.usp.br/~pf/algorithms/appendices/ascii.html)
+- [Virginia Tech CS 2505: Data Representation Notes](https://courses.cs.vt.edu/~cs2505/fall2014/Notes/T07_DataRepresentation.pdf)
 
 ## Chapter 1: The Humble Switch
 
@@ -75,8 +82,6 @@ So the binary number `1011` is:
 
 Nothing mysterious. Just a different base.
 
----
-
 ## Chapter 2: Grouping Bits — The Birth of the Byte
 
 One bit alone is not very useful. You can only represent 2 things. Two bits gives you 4. Three gives you 8.
@@ -107,8 +112,6 @@ One byte can hold **256 different values** (2⁸). That feels limiting until you
 | 8     | 64   | 18,446,744,073,709,551,616 |
 
 That last number — 64 bits — is about **18.4 quintillion**. To put that in perspective: if you counted one number per second without stopping, it would take you **584 billion years** to reach it. The universe is 13.8 billion years old. That is a big number.
-
----
 
 ## Chapter 3: ASCII — "128 Characters is Plenty"
 
@@ -194,8 +197,6 @@ Since computers were already grouping things into 8-bit bytes, ASCII characters 
 
 For a while, everything was fine. If you were writing in English.
 
----
-
 ## Chapter 4: The Rest of the World
 
 ASCII worked perfectly — for Americans.
@@ -212,8 +213,6 @@ What arrived:       HÃ©llo WÃ¶rld
 If you have ever copied text between systems and gotten garbage like `â€™` instead of an apostrophe, you have experienced Mojibake firsthand.
 
 Something had to change.
-
----
 
 ## Chapter 5: The Eighth Bit — A Band-Aid That Made Things Worse
 
@@ -237,8 +236,6 @@ KOI8-R (Russian alt):      щ  ← different Cyrillic character
 Same byte `0xE9`, four different characters depending on which system you used. There were eventually **dozens** of incompatible "extended ASCII" encodings, all claiming that 0–127 was ASCII and 128–255 was "something."
 
 Emails were scrambled. Databases were corrupted. Files sent from one country were unreadable in another. The eighth bit bought some time. It did not solve the problem.
-
----
 
 ## Chapter 6: Unicode — One System for Every Human Language
 
@@ -265,8 +262,6 @@ Today Unicode defines over **149,000 characters** across **161 writing systems**
 Unicode solves the *naming problem* — every character has one universal identity number. But it creates a new question: how do you actually **store** these numbers?
 
 The naive approach: store every character as a 4-byte integer (since Unicode goes up to U+10FFFF, you need at most 21 bits). That works, but a plain English text file becomes **four times larger** overnight. Not ideal.
-
----
 
 ## Chapter 7: UTF-8 — The Encoding That Won the Internet
 
@@ -365,8 +360,6 @@ That jump from byte index 7 to 10 is UTF-8 doing its work — three bytes for on
 
 UTF-8 today encodes over **98% of all web pages**. It won.
 
----
-
 ## Chapter 8: Back to Numbers — Signed vs Unsigned
 
 Text encoding was one problem. But computers also store numbers directly — and numbers have their own questions.
@@ -413,8 +406,6 @@ First, let us understand the problem. You have 8 bits. You want to split those 2
 That is 128 negative values + 0 + 127 positive values = 256 total. ✓
 
 But how do you actually encode `-1` in binary?
-
----
 
 ## Chapter 9: Two's Complement — The Trick That Powers Every CPU
 
@@ -521,8 +512,6 @@ Bit pattern  Unsigned value  Signed value
 
 The bit patterns are *identical*. The only difference is how you choose to **interpret** them. Same 8 bits, two different meanings. That is all `signed` and `unsigned` are — an interpretation.
 
----
-
 ## Chapter 10: Overflow — When You Run Off the Edge
 
 This is where things get dangerous.
@@ -596,8 +585,6 @@ func main() {
     }
 }
 ```
-
----
 
 ## Chapter 11: The Full Family — 8, 16, 32, and 64-Bit Integers
 
@@ -731,8 +718,6 @@ func main() {
 }
 ```
 
----
-
 ## Chapter 12: The Year 2038 Problem
 
 You may have heard of Y2K. There is a quieter version of that already scheduled: **Y2K38**.
@@ -767,8 +752,6 @@ December 13, 1901, 20:45:52 UTC
 Modern Linux systems, Go's `time.Time`, and most databases have migrated to `int64` timestamps (which hold nanoseconds and will not overflow until the year 2262). But embedded systems — routers, industrial controllers, medical devices — often still run 32-bit software. Some of them are already being replaced specifically because of this.
 
 The lesson is not "always use 64 bits." It is: **the size you choose is a commitment**. Choose it knowing the contract.
-
----
 
 ## Chapter 13: Go's Integer Types — The Full Picture
 
@@ -870,8 +853,6 @@ func main() {
 
 This distinction — bytes versus runes — trips up almost every Go beginner who worked with ASCII-only languages before. Now you know exactly why it exists.
 
----
-
 ## Chapter 14: Choosing the Right Type
 
 Here is a practical guide, now that you have the full picture:
@@ -914,8 +895,6 @@ When in doubt:
 - Use `uint8` / `byte` for raw data
 - Use `uint64` for things that are truly non-negative and potentially huge
 
----
-
 ## The Full Journey, in One Picture
 
 ```
@@ -948,7 +927,5 @@ A transistor switching on and off
     int8               int16      int32      int64
     rune (= int32)     int        uint
 ```
-
----
 
 The next time you write `int32`, you are carrying 60 years of accumulated decisions made by careful, pragmatic people solving real problems. That number has a history.
