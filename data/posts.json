@@ -885,5 +885,19 @@
             "interfaces",
             "computer-science"
         ]
+    },
+    {
+        "id": 61,
+        "title": "Go Integer Types Explained: From Bits and Bytes to int64",
+        "subtitle": "Understand binary, signed vs unsigned integers, two's complement, and overflow — then see exactly how Go's int8, int16, int32, and int64 are built on top of it",
+        "slug": "go-integer-types-explained-from-bits-and-bytes-to-int64",
+        "date": "2026-06-24",
+        "tags": [
+            "golang",
+            "binary",
+            "bit",
+            "byte",
+            "computer-science"
+        ]
     }
 ]

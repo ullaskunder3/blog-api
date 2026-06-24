@@ -1,0 +1,954 @@
+---
+title: 'Go Integer Types Explained: From Bits and Bytes to int64'
+subtitle: Understand binary, signed vs unsigned integers, two's complement, and overflow — then see exactly how Go's int8, int16, int32, and int64 are built on top of it
+id: 61
+date: '2026-06-24'
+tag:
+  - golang
+  - binary
+  - bit
+  - byte
+  - computer-science
+prev: object-oriented-go-composition-methods-and-interfaces
+next: graphics-template
+---
+
+# From 0 and 1 to `int64`: The Complete Story of How Computers Count
+
+*A university student once asked me: "What is that signed and unsigned thing?"*
+
+*I asked them back — "Do you know about bits and bytes?"*
+
+*They hesitated. Said yes. I knew they did not.*
+
+*This one is for that student.*
+
+---
+
+## Chapter 1: The Humble Switch
+
+Forget everything you know about computers for a moment.
+
+Imagine a light switch. It has exactly two states: **off** and **on**. That is it. Now imagine you and a friend agree on a code: off means `0`, on means `1`. You just built a communication system with two symbols.
+
+Computers are — at the absolute bottom, below all the code, below the operating system, below everything — just billions of these switches called **transistors**. Tiny ones. Impossibly tiny. Modern processors pack over **50 billion transistors** into a chip the size of your thumbnail.
+
+Each transistor holds one thing: a `0` or a `1`.
+
+That single `0` or `1` has a name: a **bit**. Short for *binary digit*. It is the smallest unit of information that can exist in a computer.
+
+Here is what counting looks like when you only have two symbols:
+
+```
+Decimal  Binary
+───────  ──────
+0        0
+1        1
+2        10      ← ran out of symbols, carry the 1
+3        11
+4        100     ← ran out again
+5        101
+6        110
+7        111
+8        1000    ← and again
+9        1001
+10       1010
+11       1011
+12       1100
+13       1101
+14       1110
+15       1111
+```
+
+It is exactly like decimal counting — except instead of running out of symbols at 10, you run out at 2. Every time you run out, you add another column on the left. The columns in binary represent powers of 2 instead of powers of 10.
+
+```
+Decimal column values:  ...1000, 100, 10, 1
+Binary column values:   ...   8,   4,  2, 1
+```
+
+So the binary number `1011` is:
+
+```
+1×8 + 0×4 + 1×2 + 1×1 = 8 + 0 + 2 + 1 = 11
+```
+
+Nothing mysterious. Just a different base.
+
+---
+
+## Chapter 2: Grouping Bits — The Birth of the Byte
+
+One bit alone is not very useful. You can only represent 2 things. Two bits gives you 4. Three gives you 8.
+
+The formula is simple: **n bits = 2ⁿ possible values**.
+
+Engineers quickly realized that grouping 8 bits together hit a sweet spot — enough range to be practical, small enough to be efficient. They called this group a **byte**.
+
+```
+One byte = 8 bits
+
+  bit 7   bit 6   bit 5   bit 4   bit 3   bit 2   bit 1   bit 0
+┌───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┐
+│   1   │   0   │   1   │   0   │   0   │   0   │   0   │   1   │
+└───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┘
+  128      64      32      16       8       4       2       1
+
+128 + 0 + 32 + 0 + 0 + 0 + 0 + 1 = 161
+```
+
+One byte can hold **256 different values** (2⁸). That feels limiting until you realize what you can do when you chain bytes together:
+
+| Bytes | Bits | Possible Values         |
+|-------|------|-------------------------|
+| 1     | 8    | 256                     |
+| 2     | 16   | 65,536                  |
+| 4     | 32   | 4,294,967,296           |
+| 8     | 64   | 18,446,744,073,709,551,616 |
+
+That last number — 64 bits — is about **18.4 quintillion**. To put that in perspective: if you counted one number per second without stopping, it would take you **584 billion years** to reach it. The universe is 13.8 billion years old. That is a big number.
+
+---
+
+## Chapter 3: ASCII — "128 Characters is Plenty"
+
+It is 1963. Computers take up entire rooms and cost millions of dollars. They are used almost entirely in the United States — by governments, universities, and large corporations. The people programming them need to represent text as numbers so they can send messages, print output, and store data.
+
+A committee sits down and asks a brutally practical question:
+
+**How many characters does the English language actually need?**
+
+They count it out:
+
+```
+Uppercase letters:  A–Z                      → 26
+Lowercase letters:  a–z                      → 26
+Digits:             0–9                      → 10
+Punctuation:        . , ! ? @ # $ % & * ...  → ~32
+Control characters: newline, tab, backspace  → ~34
+                                          ─────────
+                                    Total:    128
+```
+
+128 characters. And 128 is exactly **2⁷** — you need just 7 bits to represent every one of them.
+
+They named this system **ASCII**: the *American Standard Code for Information Interchange*.
+
+Here is a slice of the ASCII table, shown as actual binary:
+
+```
+Character  Decimal  Binary
+─────────  ───────  ────────
+  Space      32     00100000
+    !         33     00100001
+    0         48     00110000
+    A         65     01000001
+    B         66     01000010
+    C         67     01000011
+    a         97     01100001
+    b         98     01100010
+    z        122     01111010
+```
+
+There is something beautiful hiding in that table.
+
+Look at `A` (65) and `a` (97). The difference is exactly **32**. In binary:
+
+```
+A  →  01000001
+a  →  01100001
+          ↑
+     this one bit is the only difference
+```
+
+Converting between uppercase and lowercase is **flipping a single bit**. The committee was not random — they laid this out on purpose so hardware could do case conversion with one simple operation.
+
+Control characters are also in there, with their own numbers. `\n` (newline) is 10. `\t` (tab) is 9. `\r` (carriage return) is 13. You have used these your entire programming life, and they have been encoded as numbers since 1963.
+
+Let us verify this in Go:
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println(int('A'))     // 65
+    fmt.Println(int('a'))     // 97
+    fmt.Println(97 - 65)      // 32 — the distance between upper and lower
+    fmt.Println(int('\n'))    // 10
+    fmt.Println(int('\t'))    // 9
+
+    // Flip the 5th bit (value 32) to convert case
+    upper := byte('H')
+    lower := upper | 0b00100000  // set bit 5
+    fmt.Printf("%c -> %c\n", upper, lower)  // H -> h
+
+    lower2 := byte('h')
+    upper2 := lower2 & 0b11011111  // clear bit 5
+    fmt.Printf("%c -> %c\n", lower2, upper2)  // h -> H
+}
+```
+
+Since computers were already grouping things into 8-bit bytes, ASCII characters were stored using one full byte — and the 8th bit just sat there, unused, always set to 0.
+
+For a while, everything was fine. If you were writing in English.
+
+---
+
+## Chapter 4: The Rest of the World
+
+ASCII worked perfectly — for Americans.
+
+French has `é`, `ç`, `à`, `ù`. German has `ü`, `ö`, `ä`, `ß`. Spanish has `ñ`. Russian has the Cyrillic alphabet — 33 letters that look like this: **А Б В Г Д Е Ж З И К Л М Н О П**. Arabic writes right to left. Chinese has tens of thousands of characters. Thai, Hindi, Tamil, Korean, Japanese — none of them fit into 128 slots.
+
+Different countries started solving this on their own. Germany invented one system. Russia invented another. Japan invented several (they could not even agree among themselves). A file written with a German encoding looked like random noise on a Japanese computer. This era even has a name: **Mojibake** (文字化け) — a Japanese term meaning "character transformation," which is what happened when text was decoded with the wrong system.
+
+```
+What was written:   Héllo Wörld
+What arrived:       HÃ©llo WÃ¶rld
+```
+
+If you have ever copied text between systems and gotten garbage like `â€™` instead of an apostrophe, you have experienced Mojibake firsthand.
+
+Something had to change.
+
+---
+
+## Chapter 5: The Eighth Bit — A Band-Aid That Made Things Worse
+
+The quick fix: use that spare 8th bit.
+
+With 8 bits, you jump from 128 to **256** possible values. Keep the first 128 exactly as ASCII defined them. Fill the next 128 slots (128–255) with accented characters and special symbols.
+
+Simple. Elegant. And it immediately turned into a disaster.
+
+Every country filled those 128 extra slots with *different characters*:
+
+```
+Code point 233 in different encodings:
+──────────────────────────────────────
+Latin-1 (Western Europe):  é  ← French, Spanish, Portuguese
+Latin-2 (Eastern Europe):  é  ← same here, but other chars differ
+Windows-1251 (Russian):    й  ← Cyrillic character
+KOI8-R (Russian alt):      щ  ← different Cyrillic character
+```
+
+Same byte `0xE9`, four different characters depending on which system you used. There were eventually **dozens** of incompatible "extended ASCII" encodings, all claiming that 0–127 was ASCII and 128–255 was "something."
+
+Emails were scrambled. Databases were corrupted. Files sent from one country were unreadable in another. The eighth bit bought some time. It did not solve the problem.
+
+---
+
+## Chapter 6: Unicode — One System for Every Human Language
+
+In 1991, a consortium of technology companies — including Apple, Microsoft, IBM, and others — released the first version of **Unicode**.
+
+The goal was not modest. They wanted to assign a unique number to every character in every writing system ever used by human beings. Living languages, dead languages, ancient scripts, symbols, mathematics — all of it.
+
+That unique number is called a **code point**, written as `U+` followed by a hexadecimal number.
+
+```
+Character  Code Point  Name
+─────────  ──────────  ──────────────────────────────────
+A          U+0041      Latin Capital Letter A
+é          U+00E9      Latin Small Letter E with Acute
+ß          U+00DF      Latin Small Letter Sharp S
+中         U+4E2D      CJK Unified Ideograph (middle)
+🌍         U+1F30D     Earth Globe Europe-Africa
+𓂀         U+13080     Egyptian Hieroglyph (eye of Horus)
+ℝ          U+211D      Double-Struck Capital R (real numbers)
+```
+
+Today Unicode defines over **149,000 characters** across **161 writing systems** — including Linear B (a Bronze Age Greek script from 1500 BC), Cuneiform (ancient Mesopotamian writing), and yes, the full emoji set.
+
+Unicode solves the *naming problem* — every character has one universal identity number. But it creates a new question: how do you actually **store** these numbers?
+
+The naive approach: store every character as a 4-byte integer (since Unicode goes up to U+10FFFF, you need at most 21 bits). That works, but a plain English text file becomes **four times larger** overnight. Not ideal.
+
+---
+
+## Chapter 7: UTF-8 — The Encoding That Won the Internet
+
+In 1992, **Ken Thompson and Rob Pike** designed UTF-8 over dinner at a diner in New Jersey on a paper placemat.
+
+(You might know those names. They later created the Go programming language. The same people.)
+
+Their insight was elegant: make the encoding **variable width**. Common characters use fewer bytes. Rare characters use more. The rules:
+
+```
+Unicode Range          Bytes  Binary Pattern
+─────────────────────  ─────  ─────────────────────────────────────
+U+0000  to U+007F      1      0xxxxxxx
+U+0080  to U+07FF      2      110xxxxx 10xxxxxx
+U+0800  to U+FFFF      3      1110xxxx 10xxxxxx 10xxxxxx
+U+10000 to U+10FFFF    4      11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+```
+
+The `x` positions hold the actual bits of the code point. The leading `1`s and `10` prefixes are just markers that tell a decoder how many bytes to read.
+
+Let us trace through the letter `é` (U+00E9):
+
+```
+U+00E9 in binary:  11101001  (233 in decimal)
+
+Falls in U+0080–U+07FF range → 2 bytes
+Pattern:  110xxxxx  10xxxxxx
+
+Bits of 00E9:  000 111010 01
+               ^^^─────── three high bits
+                   ──────── six low bits
+
+Result:   11000011  10101001
+            ↑           ↑
+        0xC3          0xA9
+
+So é = 0xC3 0xA9 in UTF-8
+```
+
+And the Chinese character `中` (U+4E2D):
+
+```
+U+4E2D in binary:  100111000101101  (19,981 in decimal)
+
+Falls in U+0800–U+FFFF range → 3 bytes
+Pattern:  1110xxxx  10xxxxxx  10xxxxxx
+
+Result:   11100100  10111000  10101101
+              ↑          ↑         ↑
+           0xE4       0xB8      0xAD
+
+So 中 = 0xE4 0xB8 0xAD in UTF-8
+```
+
+The critical brilliance: ASCII characters (U+0000 to U+007F) are stored as a single byte — identical to original ASCII. A UTF-8 file containing only English text is byte-for-byte identical to an ASCII file. Zero overhead. Zero breaking change.
+
+You can see this in Go:
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    s := "Hello, 中文!"
+
+    // len() counts BYTES, not characters
+    fmt.Println(len(s)) // 14, not 10
+    //   H e l l o ,   中    文  !
+    //   1 1 1 1 1 1 1  3    3   1  = 14 bytes
+
+    // Range over a string iterates RUNES (code points)
+    for i, r := range s {
+        fmt.Printf("byte index %2d: %c  (U+%04X)\n", i, r, r)
+    }
+    // byte index  0: H  (U+0048)
+    // byte index  1: e  (U+0065)
+    // byte index  2: l  (U+006C)
+    // byte index  3: l  (U+006C)
+    // byte index  4: o  (U+006F)
+    // byte index  5: ,  (U+002C)
+    // byte index  6:    (U+0020)
+    // byte index  7: 中 (U+4E2D)  ← jumped by 3 bytes
+    // byte index 10: 文 (U+6587)  ← jumped by 3 bytes
+    // byte index 13: !  (U+0021)
+
+    // []byte gives raw bytes
+    fmt.Println([]byte("中"))  // [228 184 173] = 0xE4 0xB8 0xAD
+
+    // []rune gives code points
+    fmt.Println([]rune("中"))  // [20013] = 0x4E2D
+}
+```
+
+That jump from byte index 7 to 10 is UTF-8 doing its work — three bytes for one character.
+
+UTF-8 today encodes over **98% of all web pages**. It won.
+
+---
+
+## Chapter 8: Back to Numbers — Signed vs Unsigned
+
+Text encoding was one problem. But computers also store numbers directly — and numbers have their own questions.
+
+Take a fresh 8-bit byte. It holds 256 possible values. The question is: **which 256 values?**
+
+You have two choices.
+
+### Option 1: Unsigned — All Positive
+
+Use all 256 combinations for non-negative numbers:
+
+```
+00000000 = 0
+00000001 = 1
+00000010 = 2
+...
+11111110 = 254
+11111111 = 255
+```
+
+Range: **0 to 255**. No negatives. Every bit is used for magnitude.
+
+This is called **unsigned**. When you know a value will never be negative — a pixel's brightness, a port number, a file size — unsigned is exactly right.
+
+```go
+var brightness uint8 = 255  // max brightness, pure white
+var port      uint16 = 443  // HTTPS port
+var fileSize  uint64 = 1_073_741_824 // 1 GB in bytes
+```
+
+### Option 2: Signed — Positive and Negative
+
+What if you need to go below zero? Temperatures drop below freezing. Bank accounts go into debt. Game characters move left as well as right.
+
+You need to represent negatives. And the way computers do this is clever and slightly counterintuitive: **two's complement**.
+
+First, let us understand the problem. You have 8 bits. You want to split those 256 values between negative and positive. A natural split:
+
+```
+-128, -127, -126, ... -2, -1, 0, 1, 2, ... 126, 127
+```
+
+That is 128 negative values + 0 + 127 positive values = 256 total. ✓
+
+But how do you actually encode `-1` in binary?
+
+---
+
+## Chapter 9: Two's Complement — The Trick That Powers Every CPU
+
+This is the part most courses skip. Let us not.
+
+**Two's complement** is how every modern processor represents negative numbers. Here is the recipe, step by step, for `-1` in 8 bits:
+
+```
+Step 1: Start with the positive version
+        1 → 00000001
+
+Step 2: Flip every bit (bitwise NOT)
+        00000001 → 11111110
+
+Step 3: Add 1
+        11111110
+      + 00000001
+      ─────────
+        11111111
+
+Result: -1 = 11111111
+```
+
+Let us check a few more:
+
+```
+ 0  →  00000000
+-1  →  11111111
+-2  →  11111110
+-3  →  11111101
+-4  →  11111100
+...
+-127 → 10000001
+-128 → 10000000
+```
+
+Notice: the leftmost bit (bit 7) is `1` for all negative numbers, `0` for all positives. This bit is the **sign bit**.
+
+```
+Positive numbers:  0xxxxxxx  (bit 7 is 0)
+Negative numbers:  1xxxxxxx  (bit 7 is 1)
+```
+
+Now here is *why* this design is genius. Let us add `127 + (-1)`:
+
+```
+  01111111   (127)
++ 11111111   (-1)
+──────────
+  01111110   (126)  ✓
+
+The overflow bit (the 9th bit that does not fit) is silently discarded.
+```
+
+The addition worked correctly — and the CPU does not need to know whether the numbers are positive or negative. **The same addition circuit handles both cases.** No special logic for "add negative." No separate instruction. One circuit, all integers.
+
+Let us verify in Go:
+
+```go
+package main
+
+import (
+    "fmt"
+    "math/bits"
+)
+
+func main() {
+    var a int8 = 127
+    var b int8 = -1
+
+    fmt.Println(a + b)  // 126
+
+    // Look at the actual bits
+    var neg1 int8 = -1
+    fmt.Printf("%08b\n", uint8(neg1))  // 11111111
+
+    var neg128 int8 = -128
+    fmt.Printf("%08b\n", uint8(neg128)) // 10000000
+
+    var pos127 int8 = 127
+    fmt.Printf("%08b\n", uint8(pos127)) // 01111111
+
+    // Count leading zeros
+    fmt.Println(bits.LeadingZeros8(uint8(127))) // 1 (sign bit is 0)
+    fmt.Println(bits.LeadingZeros8(uint8(neg1))) // 0 (sign bit is 1)
+}
+```
+
+Here is the full picture for `int8`:
+
+```
+Bit pattern  Unsigned value  Signed value
+──────────── ──────────────  ────────────
+  00000000         0              0
+  00000001         1              1
+  01111110        126            126
+  01111111        127            127
+─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ sign bit flips here
+  10000000        128           -128
+  10000001        129           -127
+  11111110        254            -2
+  11111111        255            -1
+```
+
+The bit patterns are *identical*. The only difference is how you choose to **interpret** them. Same 8 bits, two different meanings. That is all `signed` and `unsigned` are — an interpretation.
+
+---
+
+## Chapter 10: Overflow — When You Run Off the Edge
+
+This is where things get dangerous.
+
+What happens when you have `127` in an `int8` and add `1`?
+
+```
+  01111111   (127)
++ 00000001   (1)
+──────────
+  10000000   (-128 !)
+```
+
+The result flips the sign bit and becomes **-128**. You went off the edge of the positive range and wrapped around to the most negative value. This is called **integer overflow**.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    var x int8 = 127
+    x++
+    fmt.Println(x)  // -128
+
+    var y uint8 = 255
+    y++
+    fmt.Println(y)  // 0
+
+    var z uint8 = 0
+    z--
+    fmt.Println(z)  // 255  (wraps the other way)
+}
+```
+
+This is not hypothetical. Overflow has caused real, expensive, deadly failures:
+
+**The Ariane 5 rocket (1996).** Thirty-seven seconds after launch, the rocket veered off course and self-destructed. The cause: a 64-bit floating-point number representing horizontal velocity was converted to a 16-bit signed integer. The velocity was larger than 32,767. It overflowed. The flight computer received a garbage value, interpreted it as flight data, and took corrective action that tore the rocket apart. The rocket and its payload cost $500 million.
+
+**The Gangnam-style overflow (2014).** YouTube's view counter was a 32-bit signed integer — max value 2,147,483,647. Psy's *Gangnam Style* hit that limit. YouTube quietly switched their view counter to a 64-bit integer while the video was live.
+
+**Every fighting game "kill counter" wrap.** Old arcade games stored enemy kill counts in a single byte. Kill 255 enemies and the counter wraps to 0. Designers would limit gameplay to avoid it — or just accept the wrap as a quirk.
+
+Go does not automatically detect overflow for integer types. You can use the `math/bits` package to check, or check bounds before the operation:
+
+```go
+package main
+
+import (
+    "fmt"
+    "math"
+)
+
+func safeAdd(a, b int32) (int32, error) {
+    if b > 0 && a > math.MaxInt32-b {
+        return 0, fmt.Errorf("overflow: %d + %d exceeds MaxInt32", a, b)
+    }
+    if b < 0 && a < math.MinInt32-b {
+        return 0, fmt.Errorf("overflow: %d + %d exceeds MinInt32", a, b)
+    }
+    return a + b, nil
+}
+
+func main() {
+    result, err := safeAdd(2_000_000_000, 2_000_000_000)
+    if err != nil {
+        fmt.Println(err)
+        // overflow: 2000000000 + 2000000000 exceeds MaxInt32
+    } else {
+        fmt.Println(result)
+    }
+}
+```
+
+---
+
+## Chapter 11: The Full Family — 8, 16, 32, and 64-Bit Integers
+
+As processors got more powerful, they could handle wider numbers natively. The industry landed on four sizes, each exactly doubling the previous.
+
+### 8-bit — The Byte
+
+```
+uint8:  0  to  255
+int8: -128  to  127
+```
+
+This is literally a byte. When you read a file, you are reading `uint8` values. When you work with raw network data, you are handling `uint8` values. Image pixels — the red, green, and blue channels in a JPEG — each fit perfectly in a `uint8` (0 is black, 255 is full intensity).
+
+```go
+// A pixel in an image
+type Pixel struct {
+    R, G, B uint8
+}
+
+redPixel   := Pixel{255, 0, 0}
+greenPixel := Pixel{0, 255, 0}
+white      := Pixel{255, 255, 255}
+black      := Pixel{0, 0, 0}
+
+// Mix two pixels (simple average)
+mix := Pixel{
+    R: (redPixel.R/2 + greenPixel.R/2),  // 127
+    G: (redPixel.G/2 + greenPixel.G/2),  // 127
+    B: 0,
+}
+fmt.Println(mix)  // {127 127 0} — a muddy yellow
+```
+
+### 16-bit — The Short
+
+```
+uint16:      0  to  65,535
+int16:  -32,768  to  32,767
+```
+
+Port numbers live here. HTTP is port 80. HTTPS is 443. The maximum possible port number is 65,535 — not 65,536, not 100,000 — because it fits in a `uint16`. That was a deliberate design choice in the TCP/IP specification.
+
+```go
+const (
+    MaxTCPPort = 65535  // uint16 max — exactly why
+    HTTPPort   = 80
+    HTTPSPort  = 443
+    SSHPort    = 22
+)
+```
+
+Audio samples often use 16-bit integers — the CD audio standard (44,100 Hz, 16-bit) stores each sample as an `int16`. That -32,768 to 32,767 range gives enough precision for audio amplitude.
+
+### 32-bit — The Int
+
+```
+uint32:           0  to  4,294,967,295
+int32:  -2,147,483,648  to  2,147,483,647
+```
+
+IPv4 addresses are 32 bits. That is not a coincidence — that is the definition. An IPv4 address like `192.168.1.1` is just four bytes written in a human-readable format:
+
+```go
+package main
+
+import (
+    "fmt"
+    "net"
+    "encoding/binary"
+)
+
+func ipToUint32(ip net.IP) uint32 {
+    return binary.BigEndian.Uint32(ip.To4())
+}
+
+func uint32ToIP(n uint32) net.IP {
+    ip := make(net.IP, 4)
+    binary.BigEndian.PutUint32(ip, n)
+    return ip
+}
+
+func main() {
+    ip := net.ParseIP("192.168.1.1")
+    n  := ipToUint32(ip)
+    fmt.Println(n)               // 3232235777
+    fmt.Println(uint32ToIP(n))   // 192.168.1.1
+
+    // Maximum possible IPv4 address
+    fmt.Println(uint32ToIP(^uint32(0))) // 255.255.255.255
+
+    // This is also why IPv4 only has ~4.3 billion addresses
+    // The internet ran out. IPv6 uses 128 bits: 2^128 addresses.
+}
+```
+
+There are 2³² = 4,294,967,296 possible IPv4 addresses. The internet has more than 4 billion devices. This is precisely why we needed IPv6 (which uses 128-bit addresses and has 2¹²⁸ — more addresses than atoms on Earth).
+
+### 64-bit — The Long
+
+```
+uint64:                            0  to  18,446,744,073,709,551,615
+int64:  -9,223,372,036,854,775,808  to  9,223,372,036,854,775,807
+```
+
+File sizes. Database row IDs. Timestamps in nanoseconds. Cryptographic values. Anything where 32 bits is not enough but correctness is non-negotiable.
+
+```go
+package main
+
+import (
+    "fmt"
+    "math"
+    "time"
+)
+
+func main() {
+    // Go's time package uses int64 nanoseconds internally
+    now := time.Now().UnixNano()
+    fmt.Println(now) // something like 1719234567890123456
+
+    // How many years until int64 nanoseconds overflow?
+    maxNano := int64(math.MaxInt64)
+    nanoPerYear := int64(365.25 * 24 * 3600 * 1e9)
+    yearsFromEpoch := maxNano / nanoPerYear
+    fmt.Println(yearsFromEpoch, "years from 1970")  // ~292 years
+    // int64 nanoseconds overflow around year 2262. Not our problem.
+
+    // Largest uint64 value
+    fmt.Println(uint64(math.MaxUint64))  // 18446744073709551615
+}
+```
+
+---
+
+## Chapter 12: The Year 2038 Problem
+
+You may have heard of Y2K. There is a quieter version of that already scheduled: **Y2K38**.
+
+Unix systems have stored timestamps as the number of seconds since January 1, 1970 (called the Unix epoch). For decades, many systems stored this as a **32-bit signed integer**.
+
+```go
+// Old Unix timestamp: int32
+// int32 max = 2,147,483,647 seconds
+
+import "time"
+
+func unixEpoch() time.Time {
+    return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+}
+
+// Add MaxInt32 seconds to epoch...
+// 2,147,483,647 seconds = 68 years, 19 days, 3 hours, 14 minutes, 7 seconds
+// That lands you on: January 19, 2038 at 03:14:07 UTC
+```
+
+On that date, at that second, any system still using a 32-bit timestamp will overflow. The counter rolls over to the most negative `int32` value: `-2,147,483,648` — which represents **December 13, 1901**.
+
+Clocks will jump backward 136 years.
+
+```
+January 19, 2038, 03:14:07 UTC
+         ↓ one second later
+December 13, 1901, 20:45:52 UTC
+```
+
+Modern Linux systems, Go's `time.Time`, and most databases have migrated to `int64` timestamps (which hold nanoseconds and will not overflow until the year 2262). But embedded systems — routers, industrial controllers, medical devices — often still run 32-bit software. Some of them are already being replaced specifically because of this.
+
+The lesson is not "always use 64 bits." It is: **the size you choose is a commitment**. Choose it knowing the contract.
+
+---
+
+## Chapter 13: Go's Integer Types — The Full Picture
+
+Open Go's standard library and look at `math/bits` or the `math` package constants. Every limit is precisely derivable from what you now know:
+
+```go
+package main
+
+import (
+    "fmt"
+    "math"
+)
+
+func main() {
+    // These are not magic numbers — they are 2^n - 1 and -2^(n-1)
+    fmt.Println(math.MaxInt8)    //  127         =  2^7  - 1
+    fmt.Println(math.MinInt8)    // -128         = -2^7
+    fmt.Println(math.MaxUint8)   //  255         =  2^8  - 1
+
+    fmt.Println(math.MaxInt16)   //  32767       =  2^15 - 1
+    fmt.Println(math.MinInt16)   // -32768       = -2^15
+    fmt.Println(math.MaxUint16)  //  65535       =  2^16 - 1
+
+    fmt.Println(math.MaxInt32)   //  2147483647  =  2^31 - 1
+    fmt.Println(math.MinInt32)   // -2147483648  = -2^31
+    fmt.Println(math.MaxUint32)  //  4294967295  =  2^32 - 1
+
+    fmt.Println(math.MaxInt64)   //  9223372036854775807  =  2^63 - 1
+    fmt.Println(math.MinInt64)   // -9223372036854775808  = -2^63
+    // MaxUint64 can't be stored in the float64 math uses
+    // but it's 18446744073709551615 = 2^64 - 1
+}
+```
+
+The expression `1<<31 - 1` means "1 shifted left by 31 positions, minus 1" — which is 2³¹ − 1 = 2,147,483,647. Once you know the bit widths, every limit in Go is predictable.
+
+### `int` and `uint` — The Platform-Dependent Ones
+
+```go
+var a int  = 42   // 64-bit on modern systems, 32-bit on 32-bit systems
+var b uint = 42   // same
+```
+
+On any computer made in the last decade, `int` is 64 bits. Go's designers made it platform-dependent deliberately: for loop counters, slice indices, and general arithmetic, the *native* word size is the right choice — it is whatever the CPU handles most efficiently.
+
+```go
+// Go uses int for slice lengths and indices — not int32, not int64
+s := []string{"a", "b", "c"}
+length := len(s)  // returns int, not int32 or int64
+for i := 0; i < len(s); i++ {
+    // i is int
+}
+```
+
+Use the explicit sizes (`int32`, `uint64`) when the bit width is part of the contract — network protocols, binary file formats, or anything where "this is a 4-byte number" matters. Use `int` for everything else.
+
+### `byte` and `rune` — Aliases With Meaning
+
+```go
+type byte = uint8   // a raw byte of data
+type rune = int32   // a Unicode code point
+```
+
+`byte` is `uint8` with a different name. It signals *intent*: this value is raw data, not a number you do arithmetic with.
+
+`rune` is `int32` with a different name. It signals: this value is a Unicode code point. The Unicode standard allows code points up to U+10FFFF (1,114,111 in decimal). That fits comfortably in `int32`. Go chose `int32` rather than `uint32` because the Unicode standard itself uses negative values as sentinels for "invalid code point."
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    // A string in Go is a sequence of bytes (uint8 values)
+    s := "café"
+
+    // Indexing gives you a BYTE, not a character
+    fmt.Println(s[0])         // 99  — 'c', works fine
+    fmt.Println(s[3])         // 195 — first byte of 'é', not 'é'!
+
+    // Casting to string from a byte gives the character
+    fmt.Println(string(s[0])) // c ✓
+    fmt.Println(string(s[3])) // Ã  ✗ — we split a multi-byte character
+
+    // Range gives you runes (whole characters), correctly
+    for i, r := range s {
+        fmt.Printf("index %d: %c\n", i, r)
+    }
+    // index 0: c
+    // index 1: a
+    // index 2: f
+    // index 3: é   ← even though it's 2 bytes (index 3 and 4)
+
+    // Count characters (runes), not bytes
+    fmt.Println(len(s))            // 5 bytes
+    fmt.Println(len([]rune(s)))    // 4 characters ✓
+}
+```
+
+This distinction — bytes versus runes — trips up almost every Go beginner who worked with ASCII-only languages before. Now you know exactly why it exists.
+
+---
+
+## Chapter 14: Choosing the Right Type
+
+Here is a practical guide, now that you have the full picture:
+
+```go
+// Byte data: raw files, network packets, cryptographic hashes
+data  []byte          // = []uint8
+hash  [32]byte        // SHA-256 output: 32 bytes
+
+// Text: always use string or rune
+text  string          // UTF-8 encoded bytes
+char  rune            // single Unicode code point = int32
+
+// Counting and indexing: use int
+count  int
+index  int
+
+// When the exact bit width is part of the contract:
+// Network protocol fields, binary file formats, serialization
+messageType  uint8    // 1 byte field in a protocol
+payloadLen   uint32   // 4 byte length prefix
+timestamp    int64    // 8 byte Unix timestamp in nanoseconds
+
+// Platform-native performance: use int/uint
+for i := 0; i < n; i++ { ... }  // i is int — correct
+
+// Pixel colors
+r, g, b uint8  // 0–255 per channel
+
+// Port numbers
+port uint16  // 0–65535
+
+// IPv4 addresses (if treating as a number)
+addr uint32
+```
+
+When in doubt:
+- Use `int` for numbers you count or index with
+- Use `int64` when the range of `int` might not be enough and you need to be explicit
+- Use `uint8` / `byte` for raw data
+- Use `uint64` for things that are truly non-negative and potentially huge
+
+---
+
+## The Full Journey, in One Picture
+
+```
+A transistor switching on and off
+           ↓
+        0  and  1  (1 bit = 2 values)
+           ↓
+    8 bits grouped  =  1 byte (256 values)
+           ↓
+     ASCII (1963): 128 characters in 7 bits
+     Uppercase + lowercase + digits + punctuation + control chars
+           ↓
+    The world needs more: every language, every script
+           ↓
+    Extended ASCII: 256 characters — but incompatible standards
+           ↓
+    Unicode (1991): one code point for every human character
+           ↓
+    UTF-8 (1992): variable-width encoding, backward-compatible
+    1 byte for ASCII, 2–4 bytes for everything else
+    98% of the web today
+           ↓
+    Integer sizes: 8, 16, 32, 64 bits
+    unsigned: all positive (0 to 2ⁿ-1)
+    signed:   positive and negative (-2ⁿ⁻¹ to 2ⁿ⁻¹-1)
+    two's complement: the trick that makes addition work for both
+           ↓
+    Go's type system:
+    uint8 / byte       uint16     uint32     uint64
+    int8               int16      int32      int64
+    rune (= int32)     int        uint
+```
+
+---
+
+The next time you write `int32`, you are carrying 60 years of accumulated decisions made by careful, pragmatic people solving real problems. That number has a history.
