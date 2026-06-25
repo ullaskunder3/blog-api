@@ -113,6 +113,8 @@ jobs:
 
 **Engineer's Note:** Notice the `-f -i -s` flags on the `curl` command. By default, `curl` will return a green success checkmark as long as it connects to the server, even if GitHub rejects your token with a `403 Forbidden`. Adding `-f` forces the pipeline to fail loudly if the API rejects the request, which saves hours of debugging.
 
+![First test run but no update](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/action-profile-update/first-test-did-run-but-no-update.png)
+
 ## Step 3: The Receiver (The Python Automation)
 
 Over in my profile repository, I needed a script to catch the `blog_published` event, read my RSS feed, and rewrite the README.md.
@@ -218,6 +220,8 @@ jobs:
 2. **String Slicing > Regex:** I originally tried to replace the text between the HTML tags using Regular Expressions. But because my `README.md` didn't have a perfect `\n` newline character between the empty tags, the Regex silently failed. I ripped it out and used standard string slicing (`readme[:start_idx] + new_data + readme[end_idx:]`). It is faster, bulletproof, and doesn't care about formatting.
 
 ## The Result
+
+![Final execution success](https://cdn.jsdelivr.net/gh/ullaskunder3/blog-api@main/data/img/action-profile-update/last-test-success.png)
 
 The final execution time? **Under 15 seconds.** The compute cost? Practically zero. It only runs exactly when a new blog is pushed, using Python's ultra-fast standard library, making a single tiny HTTP request.
 
