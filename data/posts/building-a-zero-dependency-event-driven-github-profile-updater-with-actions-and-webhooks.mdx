@@ -1,0 +1,226 @@
+---
+title: Building a Zero-Dependency, Event-Driven GitHub Profile Updater with Actions and Webhooks
+subtitle: A step-by-step guide to automate a lean, cross-repository with secure webhook architecture using fine-grained tokens and Python.
+id: 62
+date: '2026-06-25'
+tag:
+  - github-actions
+  - automation
+  - python
+  - webhooks
+  - architecture
+prev: go-integer-types-explained-from-bits-and-bytes-to-int64
+next: graphics-template
+---
+
+I build things. I write about building things. But manually copying links from my new blog posts and pasting them into my GitHub profile README? That is not engineering. That is data entry.
+
+I was recently diving deep into CI/CD pipelines and GitHub Actions, stripping away the magic to understand how the fundamentals work, when an idea suddenly clicked. 
+
+When I decided to automate the `## ✍️ Recent Writing` section of my GitHub profile, I had a choice. I could use one of the dozen popular, pre-built GitHub Actions that parse RSS feeds. You just plug them in, set a cron job to run every midnight, and you are done.
+
+But I hate bloat. I hate black-box dependencies. And running a script 365 days a year to check for a blog post I write twice a month is a massive waste of compute.
+
+I wanted a system that aligned with my engineering philosophy: **Zero dependencies, highly secure, and strictly event-driven.** When I push a new blog to my `blog-api` repository, it should instantly signal my profile repository to update. No wasted runs. No third-party packages. Just native code.
+
+Here is how I built it.
+
+---
+
+## A Quick Primer: How GitHub Actions Actually Work
+
+If you are new to CI/CD (Continuous Integration / Continuous Deployment), a GitHub Action might look like magic. It isn't. It is just a server (usually an Ubuntu Linux machine) that GitHub spins up to run terminal commands for you.
+
+To create an action, you just create a folder path in the root of your project: `.github/workflows/` and add a `.yaml` file inside it.
+
+Every workflow file has three main concepts:
+* **`on:`** The trigger. What event wakes up the server? (e.g., a `push` to the main branch, a manual click, or a webhook).
+* **`jobs:`** The actual server environment. We usually tell GitHub to run our code on `ubuntu-latest`.
+* **`steps:`** The sequential list of terminal commands you want the server to execute, top to bottom.
+
+---
+
+## The Architecture
+
+Because my blog code (`ullaskunder3/blog-api`) and my profile README (`ullaskunder3/ullaskunder3`) live in two completely separate repositories, they cannot natively talk to each other.
+
+To bridge the gap, I used a **Repository Dispatch**—a native GitHub webhook.
+The cross-repository dispatch concept can be tricky to visualize, so here is the exact data flow:
+
+```text
+[ blog-api Repository ]
+       |
+       | 1. Push new blog to 'main'
+       v
+[ Trigger Workflow ] 
+       |
+       | 2. Fires cURL POST request (Webhook)
+       v
+[ GitHub REST API ] 
+       |
+       | 3. Authenticates & routes the 'repository_dispatch'
+       v
+[ ullaskunder3 Profile Repository ]
+       |
+       | 4. Wakes up, fetches RSS feed using Python
+       v
+[ Updates README.md ]
+```
+
+### Step 1: Security First (The Token Trap)
+
+To allow the `blog-api` repo to trigger an action in the profile repo, you need a Personal Access Token (PAT).
+
+A lot of tutorials tell you to just generate a "Classic Token" with the `repo` scope. **Do not do this.** A Classic token is a skeleton key; if it leaks, the attacker owns every public and private repository on your account.
+
+Instead, practice the Principle of Least Privilege. I created a **Fine-Grained Token**:
+
+* **Access:** Restricted strictly to the `ullaskunder3/ullaskunder3` repository.
+* **Permissions:** `Contents: Read and write` (required to accept a repository dispatch).
+* **Storage:** Saved as an encrypted GitHub Secret (`PROFILE_UPDATE_TOKEN`) in the `blog-api` repository.
+
+If this token ever leaks, the absolute worst a hacker can do is update my profile README.
+
+## Step 2: The Sender (`blog-api` Webhook)
+
+In the repository where my blogs are actually published, I created a tiny workflow that fires whenever I push to `main`.
+
+I didn't use a third-party plugin to send the webhook. I just used `curl`.
+
+```yaml
+name: Trigger Profile Update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Profile Repository
+        run: |
+          curl -f -i -s -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.PROFILE_UPDATE_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/ullaskunder3/ullaskunder3/dispatches \
+            -d '{"event_type": "blog_published"}'
+
+```
+
+**Engineer's Note:** Notice the `-f -i -s` flags on the `curl` command. By default, `curl` will return a green success checkmark as long as it connects to the server, even if GitHub rejects your token with a `403 Forbidden`. Adding `-f` forces the pipeline to fail loudly if the API rejects the request, which saves hours of debugging.
+
+## Step 3: The Receiver (The Python Automation)
+
+Over in my profile repository, I needed a script to catch the `blog_published` event, read my RSS feed, and rewrite the README.md.
+
+Instead of `npm install`-ing a massive JavaScript parser, I wrote an inline script using Python's standard library. No dependencies required.
+
+First, I added two hidden HTML comments to my `README.md` to act as injection markers:
+
+```markdown
+## ✍️ Recent Writing
+<!-- BLOG-POST-LIST:START -->
+<!-- BLOG-POST-LIST:END -->
+```
+
+Then, I built the workflow:
+
+```yaml
+name: Update Profile with Latest Blogs
+
+on:
+  workflow_dispatch: # Allows manual testing
+  repository_dispatch:
+    types: [blog_published] # Listens for the webhook from blog-api
+
+permissions:
+  contents: write 
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch RSS and Update README
+        run: |
+          python3 -c "
+          import urllib.request, xml.etree.ElementTree as ET
+          from datetime import datetime
+          import sys
+
+          # 1. Fetch the RSS feed with Error Handling
+          url = 'https://www.ullaskunder.com/rss.xml'
+          req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+          
+          try:
+              xml_data = urllib.request.urlopen(req).read()
+          except Exception as e:
+              print(f'Error fetching RSS feed: {e}')
+              sys.exit(1)
+              
+          root = ET.fromstring(xml_data)
+
+          # 2. Extract and sort all posts
+          all_posts = []
+          for item in root.findall('./channel/item'):
+              title = item.find('title').text
+              link = item.find('link').text
+              pubDate = item.find('pubDate').text
+              dt = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
+              all_posts.append({'title': title, 'link': link, 'dt': dt})
+
+          all_posts.sort(key=lambda x: x['dt'], reverse=True)
+
+          # 3. Format the top 3 posts
+          posts = []
+          for post in all_posts[:3]:
+              t = post['title']
+              l = post['link']
+              d = post['dt'].strftime('%b %Y')
+              posts.append(f'- [{t}]({l}) · *{d}*')
+
+          posts_str = '\n'.join(posts)
+
+          # 4. Inject into README using string slicing
+          with open('README.md', 'r') as f:
+              readme = f.read()
+
+          start_tag = '<!-- BLOG-POST-LIST:START -->'
+          end_tag = '<!-- BLOG-POST-LIST:END -->'
+          
+          start_idx = readme.find(start_tag)
+          end_idx = readme.find(end_tag)
+
+          if start_idx != -1 and end_idx != -1:
+              new_readme = readme[:start_idx + len(start_tag)] + '\n' + posts_str + '\n' + readme[end_idx:]
+              with open('README.md', 'w') as f:
+                  f.write(new_readme)
+          "
+
+      - name: Commit and Push changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: sync latest blog posts" && git push)
+
+```
+
+### Two important lessons learned here:
+
+1. **Sort Your Data:** Initially, I just grabbed the first three items Python found in the XML (`root.findall()[:3]`). Because of how my feed generator builds the XML, my oldest posts from 2021 were at the top. The fix was storing all objects, running a quick `sort(reverse=True)` on the datetime objects, and *then* slicing the top three.
+2. **String Slicing > Regex:** I originally tried to replace the text between the HTML tags using Regular Expressions. But because my `README.md` didn't have a perfect `\n` newline character between the empty tags, the Regex silently failed. I ripped it out and used standard string slicing (`readme[:start_idx] + new_data + readme[end_idx:]`). It is faster, bulletproof, and doesn't care about formatting.
+
+## The Result
+
+The final execution time? **Under 15 seconds.** The compute cost? Practically zero. It only runs exactly when a new blog is pushed, using Python's ultra-fast standard library, making a single tiny HTTP request.
+
+By avoiding black-box templates and writing the glue code myself, I ended up with a system that is perfectly tailored, completely secure, and infinitely easier to debug.
+
+No templates. Just code.

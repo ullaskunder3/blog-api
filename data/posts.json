@@ -899,5 +899,19 @@
             "byte",
             "computer-science"
         ]
+    },
+    {
+        "id": 62,
+        "title": "Building a Zero-Dependency, Event-Driven GitHub Profile Updater with Actions and Webhooks",
+        "subtitle": "A step-by-step guide to automate a lean, cross-repository with secure webhook architecture using fine-grained tokens and Python.",
+        "slug": "building-a-zero-dependency-event-driven-github-profile-updater-with-actions-and-webhooks",
+        "date": "2026-06-25",
+        "tags": [
+            "github-actions",
+            "automation",
+            "python",
+            "webhooks",
+            "architecture"
+        ]
     }
 ]
