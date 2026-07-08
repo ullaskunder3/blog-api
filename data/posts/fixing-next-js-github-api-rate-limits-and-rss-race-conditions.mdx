@@ -1,0 +1,315 @@
+---
+title: How I Re-Architected My Blog Pipeline for Instant Publishing, Better SEO, and Zero Rate Limits
+subtitle: A story about fixing race conditions, avoiding Next.js API rate limits, and building a perfectly synchronized GitHub Actions webhook pipeline.
+id: 63
+date: '2026-07-08'
+tag:
+  - nextjs
+  - github-actions
+  - automation
+  - architecture
+  - seo
+prev: building-a-zero-dependency-event-driven-github-profile-updater-with-actions-and-webhooks
+next: graphics-template
+---
+
+# How I Re-Architected My Blog Pipeline for Instant Publishing, Better SEO, and Zero Rate Limits
+
+A couple of weeks ago, I wrote about [building a zero-dependency, event-driven GitHub profile updater](/blog/building-a-zero-dependency-event-driven-github-profile-updater-with-actions-and-webhooks). The system worked. Push a blog, fire a webhook, update the profile README. Clean.
+
+Then I pushed a new post and watched my profile show stale data.
+
+The system had two hidden flaws that I had completely overlooked. This post is about finding them, understanding why they happened, and the exact code changes I made to fix them.
+
+---
+
+## The Setup (Context)
+
+My blog architecture spans three repositories:
+
+```text
+blog-api          → Headless CMS. Stores .mdx files and posts.json.
+ullaskunder       → Next.js portfolio. Fetches content from blog-api via GitHub API.
+ullaskunder3      → GitHub Profile README. Auto-updated by a webhook from blog-api.
+```
+
+The original data flow looked like this:
+
+```text
+[ Push to blog-api ]
+       |
+       | 1. GitHub Action fires webhook
+       v
+[ ullaskunder3 Profile Action ]
+       |
+       | 2. Fetches rss.xml from ullaskunder.com
+       v
+[ Parses XML, updates README.md ]
+```
+
+Two problems hid inside this flow.
+
+---
+
+## Problem 1: The RSS Race Condition
+
+### What went wrong
+
+When I pushed a new blog post to `blog-api`, two things happened simultaneously:
+
+1. The GitHub Action in `blog-api` fired the webhook to `ullaskunder3` *instantly*.
+2. Vercel detected the push and started rebuilding my Next.js site.
+
+The webhook completed in under 5 seconds. The Vercel build took 1-2 minutes.
+
+The profile action was fetching `rss.xml` from the live site. But the live site had not finished deploying yet. So the action read the *old* RSS feed, found no new post, and committed nothing.
+
+### My misconception
+
+I assumed that when I push to `blog-api`, the `rss.xml` on my live site updates at the same moment. I was treating two independent systems — GitHub and Vercel — as if they were synchronous.
+
+They are not. GitHub Actions and Vercel deployments run on completely separate infrastructure with no coordination.
+
+### My first hack
+
+I added a `sleep` timer to the `blog-api` trigger workflow:
+
+```yaml
+# ❌ The old approach (blog-api/.github/workflows/trigger-profile.yml)
+jobs:
+  notify-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Next.js Deployment
+        run: sleep 180 # Sit idle for 3 minutes, hoping Vercel finishes
+
+      - name: Ping Profile Repository
+        run: |
+          curl -f -i -s -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.PROFILE_UPDATE_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/ullaskunder3/ullaskunder3/dispatches \
+            -d '{"event_type": "blog_published"}'
+```
+
+This is bad engineering for three reasons:
+
+1. **Wasted compute.** Three minutes of an idle CI runner per push.
+2. **Fragile.** If Vercel takes 4 minutes one day, the profile still gets stale data.
+3. **Not event-driven.** A `sleep` is a poll. I built this system to avoid polling.
+
+### The actual fix
+
+The problem was not timing. The problem was the *data source*.
+
+My profile action was fetching from `ullaskunder.com/rss.xml` (the frontend). But the data originates from `blog-api/data/posts.json` (the CMS). The CMS updates the moment I push. Vercel does not.
+
+Solution: skip the frontend entirely. Fetch the raw JSON from the CMS.
+
+**Step 1:** Remove the sleep timer from `blog-api`:
+
+```yaml
+# ✅ The new approach (blog-api/.github/workflows/trigger-profile.yml)
+jobs:
+  notify-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Profile Repository
+        run: |
+          curl -f -i -s -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.PROFILE_UPDATE_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/ullaskunder3/ullaskunder3/dispatches \
+            -d '{"event_type": "blog_published"}'
+```
+
+No waiting. The webhook fires the instant I push.
+
+**Step 2:** Rewrite the profile action's Python script to parse JSON instead of XML.
+
+Here is the old script that fetched from the live site:
+
+```python
+# ❌ Old: Fetching from the Next.js frontend (subject to Vercel build delays)
+import urllib.request, xml.etree.ElementTree as ET
+from datetime import datetime
+
+url = 'https://www.ullaskunder.com/rss.xml'
+req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+xml_data = urllib.request.urlopen(req).read()
+root = ET.fromstring(xml_data)
+
+all_posts = []
+for item in root.findall('./channel/item'):
+    title = item.find('title').text
+    link = item.find('link').text
+    pubDate = item.find('pubDate').text
+    dt = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
+    all_posts.append({'title': title, 'link': link, 'dt': dt})
+```
+
+And here is the new script that fetches directly from the CMS:
+
+```python
+# ✅ New: Fetching raw JSON from the CMS repo (instant, no build required)
+import urllib.request, json
+from datetime import datetime
+
+url = 'https://raw.githubusercontent.com/ullaskunder3/blog-api/main/data/posts.json'
+req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+json_data = urllib.request.urlopen(req).read()
+posts_list = json.loads(json_data)
+
+all_posts = []
+for post in posts_list:
+    title = post['title']
+    slug = post['slug']
+    link = f'https://www.ullaskunder.com/blog/{slug}'
+    date_str = post['date']
+    dt = datetime.strptime(date_str, '%Y-%m-%d')
+    all_posts.append({'title': title, 'link': link, 'dt': dt})
+```
+
+Two key differences:
+
+1. **Data source changed.** `raw.githubusercontent.com` serves the file the moment it is merged to `main`. No build step. No delay.
+2. **URL construction changed.** The RSS feed provided the full `<link>` tag. The JSON only provides a `slug`. So the script now constructs the URL dynamically: `f'https://www.ullaskunder.com/blog/{slug}'`.
+
+The updated data flow:
+
+```text
+[ Push to blog-api ]
+       |
+       | 1. Webhook fires instantly (no sleep)
+       v
+[ ullaskunder3 Profile Action ]
+       |
+       | 2. Fetches posts.json from raw.githubusercontent.com
+       |    (Available immediately, no Vercel build needed)
+       v
+[ Parses JSON, constructs URLs from slugs ]
+       |
+       v
+[ Updates README.md in under 10 seconds ]
+```
+
+The race condition is gone. The profile action no longer depends on Vercel at all.
+
+---
+
+## Problem 2: The Next.js Rate Limit Trap
+
+### What went wrong
+
+While auditing the pipeline, I looked at how my Next.js portfolio actually fetches blog content. I found this at the top of `app/blogs/[slug]/page.tsx`:
+
+```typescript
+// ❌ Old: Forces server-side rendering on every request
+export const dynamic = "force-dynamic";
+```
+
+### My misconception
+
+I thought `force-dynamic` was the safest way to guarantee users always see the latest blog post. I did not think about what it actually does under the hood.
+
+Here is what `force-dynamic` tells Next.js:
+
+> Do not cache this page. On every single request, spin up the server, fetch the data from GitHub, parse the Markdown, render the HTML, and send it to the user.
+
+Every page view was making a live API call to GitHub. My portfolio fetches `.mdx` files from the `blog-api` repository using the GitHub Contents API with a Personal Access Token (PAT). That means every visitor was consuming one of my 5,000 requests/hour.
+
+This is the kind of flaw that works perfectly in development and during low traffic, but breaks the moment a post gets shared on social media.
+
+### The actual numbers
+
+| Metric | `force-dynamic` |
+| --- | --- |
+| API calls per visitor | 1 |
+| Rate limit | 5,000/hour |
+| Max concurrent readers | ~83/minute before crash |
+| TTFB (Time to First Byte) | 300-500ms (server render) |
+| SEO impact | Slow TTFB hurts Core Web Vitals |
+
+83 readers per minute sounds comfortable until you realize a single Hacker News or Reddit post can send thousands of visitors in an hour.
+
+### The fix: Incremental Static Regeneration
+
+I replaced `force-dynamic` with a single line:
+
+```typescript
+// ✅ New: Cache the page, revalidate every 60 seconds
+export const revalidate = 60;
+```
+
+What ISR does:
+
+1. **First request:** Next.js renders the page server-side, caches the full HTML at Vercel's Edge CDN.
+2. **Subsequent requests (within 60 seconds):** Vercel serves the cached HTML instantly. Zero API calls.
+3. **First request after 60 seconds:** Vercel serves the cached version to the user (still fast), but triggers a background revalidation. Next.js silently fetches the latest data from GitHub and updates the cache.
+4. **Next request:** Gets the freshly cached version.
+
+The user never waits. GitHub never gets hammered.
+
+### The numbers after ISR
+
+| Metric | `force-dynamic` (Before) | `revalidate = 60` (After) |
+| --- | --- | --- |
+| API calls per visitor | 1 | 0 (served from cache) |
+| API calls per 60 seconds | Unbounded | 1 |
+| Max concurrent readers | ~83/min | Unlimited (Edge CDN) |
+| TTFB | 300-500ms | <50ms |
+| SEO impact | Poor | Excellent |
+
+### When ISR is not enough
+
+ISR has one trade-off: content staleness. If I fix a typo in a blog post, the live site could show the old version for up to 60 seconds. For my use case, this is completely acceptable.
+
+If you need truly instant updates (e.g., a stock ticker or live score), ISR is the wrong tool. Use `force-dynamic` or WebSockets instead. But for blog content that changes a few times a month, a 60-second cache window is the sweet spot between freshness and performance.
+
+---
+
+## The Final Architecture
+
+All three repositories are now perfectly synchronized:
+
+```text
+[ Push .mdx + posts.json to blog-api ]
+       |
+       |──── Vercel detects push, rebuilds ullaskunder.com (background)
+       |
+       |──── GitHub Action fires webhook instantly
+       |            |
+       |            v
+       |     [ ullaskunder3 Profile Action ]
+       |            |
+       |            | Fetches posts.json from raw.githubusercontent.com
+       |            |
+       |            v
+       |     [ README.md updated in <10 seconds ]
+       |
+       v
+[ Vercel build completes (~1-2 min) ]
+       |
+       | ISR cache expires after 60s
+       | Background revalidation fetches fresh data
+       v
+[ ullaskunder.com/blog shows new post ]
+```
+
+### What changed across each repository
+
+**`blog-api`** — Removed the `sleep 180` from the trigger workflow. The webhook now fires immediately.
+
+**`ullaskunder3`** — Rewrote the Python script from XML/RSS parsing to direct JSON parsing. Data source changed from `ullaskunder.com/rss.xml` to `raw.githubusercontent.com/.../posts.json`.
+
+**`ullaskunder`** — Replaced `export const dynamic = "force-dynamic"` with `export const revalidate = 60` in the blog route. Pages are now cached at the Edge.
+
+### The result
+
+Profile updates: instant. Page loads: under 50ms. API rate limit risk: eliminated. Compute waste: zero.
+
+Three small code changes. Two misconceptions corrected.

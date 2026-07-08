@@ -913,5 +913,19 @@
             "webhooks",
             "architecture"
         ]
+    },
+    {
+        "id": 63,
+        "title": "How I Re-Architected My Blog Pipeline for Instant Publishing, Better SEO, and Zero Rate Limits",
+        "subtitle": "A story about fixing race conditions, avoiding Next.js API rate limits, and building a perfectly synchronized GitHub Actions webhook pipeline.",
+        "slug": "fixing-next-js-github-api-rate-limits-and-rss-race-conditions",
+        "date": "2026-07-08",
+        "tags": [
+            "nextjs",
+            "github-actions",
+            "automation",
+            "architecture",
+            "seo"
+        ]
     }
 ]
