@@ -1,0 +1,233 @@
+---
+title: 'How Computers Store Letters, Emojis, and Languages: Unicode and UTF-8 Explained'
+subtitle: Learn how computers convert characters like A, 😊, and Chinese symbols into Unicode numbers and UTF-8 bytes for storage and communication.
+id: 64
+date: '2026-07-17'
+tag:
+  - unicode
+  - utf-8
+  - encoding
+  - binary
+  - computer-science
+  - go
+prev: fixing-next-js-github-api-rate-limits-and-rss-race-conditions
+next: graphics-template
+---
+
+# Unicode and UTF-8: A Physicist's Guide to How Computers Store Text
+
+Imagine you're sitting with a coffee, trying to understand the *physical reality* behind computers the way Feynman liked to strip an idea down until only the essential mechanism was left.
+
+The question on the table:
+
+**How does a computer store the letter "A", the emoji 😊, or a Chinese character?**
+
+A computer doesn't see letters. It only sees **numbers** really, bits: 0s and 1s. So somewhere, there has to be a rule that says:
+
+> "This number means this character."
+
+That rule is called **Unicode**. And the way that rule gets turned into actual bytes on disk is called an **encoding** most commonly, **UTF-8**. These are two different jobs, and confusing them is where most people get lost.
+
+## 1. First principle: characters are ideas, computers need numbers
+
+Think of every character in every language as an object in a giant museum. The museum needs labels.
+
+| Character | Label (decimal) |
+|---|---|
+| A | 65 |
+| B | 66 |
+| a | 97 |
+| 😊 | 128522 |
+
+Unicode is that giant labeling system. But it's worth being precise about what gets a label: Unicode doesn't assign one code point to every possible visible symbol. Instead, it assigns numbers **code points** to characters and symbols, and many visible symbols are actually built from *several* code points joined together.
+
+Two examples make this concrete:
+
+- **`é`** can exist as a single precomposed code point (`U+00E9`), *or* as two code points combined: `U+0065` (the letter `e`) followed by `U+0301` (a combining acute accent). Both render the same on screen.
+- **`👨‍👩‍👧‍👦`** (the family emoji) isn't one code point at all it's four separate emoji (man, woman, girl, boy) glued together with invisible "zero-width joiner" code points in between, and your font/OS renders the whole sequence as one glyph.
+
+So the more accurate phrasing is: **Unicode assigns numbers (code points) to characters and symbols, including many cases where a single visible symbol is actually made of multiple code points working together.** That distinction matters later it's part of why "counting characters" in code is trickier than it looks.
+
+Those code points are written like this:
+
+```
+U+0041
+```
+
+where `U+` means "Unicode" and `0041` is the number in hexadecimal. So:
+
+```
+A  = U+0041
+😊 = U+1F60A
+```
+
+Unicode, at its core, is just a dictionary: **human symbol → number.** It says nothing yet about how that number gets stored in memory.
+
+## 2. So why do we need UTF-8?
+
+Here's the part people skip past. A Unicode number is not automatically a sequence of bytes. A computer stores **bytes** 8-bit chunks like `10101010` and a code point has to be converted into one or more of them:
+
+```
+Unicode number → Bytes → Stored on disk / in memory
+```
+
+That conversion method is the **encoding**. UTF-8 is the most common one.
+
+- **Unicode** is the dictionary of characters.
+- **UTF-8** is the packing method that puts those characters into byte-sized boxes.
+
+**Analogy:** Unicode is a phone book Alice → 001, Bob → 002. But to mail that number, you need a format for writing it on paper. Unicode gives the identity. UTF-8 gives the representation you can actually transmit or store.
+
+## 3. How UTF-8 actually packs characters
+
+UTF-8 is a **variable-length** encoding: it uses 1 to 4 bytes per character, and it's clever about which characters get how much space.
+
+| Character | Unicode | UTF-8 bytes | Byte count |
+|---|---|---|---|
+| `A` (English) | U+0041 | `01000001` | 1 |
+| `é` (European) | U+00E9 | `11000011 10101001` | 2 |
+| `अ` (Devanagari) | U+0905 | `11100000 10100100 10101110` | 3 |
+| `😊` (Emoji) | U+1F60A | `11110000 10011111 10011000 10001010` | 4 |
+
+Common characters get small boxes. Rare, high-numbered characters get bigger ones like a smart suitcase where socks get small pockets and jackets get the big ones.
+
+### Why not just use 4 bytes for everything?
+
+Because most of the internet's text is still plain English. A fixed-width 4-byte encoding would reserve a full 32 bits for *every* code point, regardless of whether it's a common letter like `H` or a rare symbol so "Hello" would balloon from 5 bytes to 20, most of those bits unused for common characters. UTF-8 avoids that waste by scaling the byte count to how common the character is. (Worth noting: fixed-width encodings aren't inherently wrong some systems still use them internally, e.g. UTF-32, when simplicity of indexing matters more than size. UTF-8 just optimizes for the common case on disk and over the network.)
+
+### The genius trick: backward compatibility with ASCII
+
+The old ASCII standard mapped `A → 65`, `B → 66`, and so on, using a single byte. UTF-8 was deliberately designed so that **any ASCII file is already a valid UTF-8 file** the bytes don't change at all for plain English text. That's a huge reason UTF-8 won and became the dominant encoding on the web.
+
+## 4. What happens when you save a file
+
+You type:
+
+```
+Hello 😊
+```
+
+Step 1 — look up each character's Unicode code point:
+
+```
+H → U+0048    e → U+0065    l → U+006C
+l → U+006C    o → U+006F    😊 → U+1F60A
+```
+
+Step 2 — UTF-8 encodes each code point into bytes:
+
+```
+H → 48    e → 65    l → 6C    l → 6C    o → 6F
+😊 → F0 9F 98 8A
+```
+
+The disk stores the raw sequence:
+
+```
+48 65 6C 6C 6F F0 9F 98 8A
+```
+
+And opening the file reverses the process bytes flow through a UTF-8 decoder, become code points, and those become the characters you see on screen.
+
+## 5. Don't just take my word for it verify it in code
+
+This is the part that makes the idea click: you can ask a real program to show you the code point, the raw bytes, and even the binary. Here's a small Go program that inspects a single character end-to-end, including how it would look in UTF-16 (the encoding JavaScript strings and Windows APIs use internally) for comparison:
+
+```go
+package main
+
+import (
+	"fmt"
+	"unicode/utf8"
+)
+
+func inspectChar(ch string) {
+	r, _ := utf8.DecodeRuneInString(ch)
+
+	fmt.Println("Character:      ", ch)
+	fmt.Printf("Unicode:        U+%04X\n", r)
+	fmt.Println("Decimal:        ", r)
+
+	// UTF-16 units
+	fmt.Print("UTF-16 units:   ")
+	utf16Units := []uint16{}
+	for _, u := range []rune(ch) {
+		if u <= 0xFFFF {
+			utf16Units = append(utf16Units, uint16(u))
+		} else {
+			// Encode surrogate pair
+			u -= 0x10000
+			high := 0xD800 + (u >> 10)
+			low := 0xDC00 + (u & 0x3FF)
+			utf16Units = append(utf16Units, uint16(high), uint16(low))
+		}
+	}
+
+	for i, u := range utf16Units {
+		if i > 0 {
+			fmt.Print(" ")
+		}
+		fmt.Printf("0x%04X", u)
+	}
+	fmt.Println()
+
+	// UTF-8 bytes
+	fmt.Print("UTF-8 bytes:    ")
+	bytes := []byte(ch)
+	for i, b := range bytes {
+		if i > 0 {
+			fmt.Print(" ")
+		}
+		fmt.Printf("0x%02X", b)
+	}
+	fmt.Println()
+
+	// Binary UTF-8
+	fmt.Print("Binary (UTF-8): ")
+	for i, b := range bytes {
+		if i > 0 {
+			fmt.Print(" ")
+		}
+		fmt.Printf("%08b", b)
+	}
+	fmt.Println()
+}
+
+func main() {
+	inspectChar("♥")
+}
+```
+
+Running it against the heart symbol `♥` gives:
+
+```
+Character:       ♥
+Unicode:        U+2665
+Decimal:         9829
+UTF-16 units:   0x2665
+UTF-8 bytes:    0xE2 0x99 0xA5
+Binary (UTF-8): 11100010 10011001 10100101
+```
+
+Look at what this confirms, line by line:
+
+- **`Unicode: U+2665`** the dictionary lookup. `♥` is entry number 9829 in the Unicode table, no matter what encoding you eventually use.
+- **`UTF-16 units: 0x2665`** since 9829 fits inside a single 16-bit unit, UTF-16 stores it as-is, no surrogate pair needed. (That machinery only kicks in for code points above `U+FFFF`, like emoji.)
+- **`UTF-8 bytes: 0xE2 0x99 0xA5`** three separate bytes, because 9829 is too large for UTF-8's 1-byte or 2-byte ranges but fits its 3-byte range.
+- **`Binary: 11100010 10011001 10100101`** the actual bits on disk. Notice the pattern: the first byte starts with `1110`, and the two continuation bytes both start with `10`. That's UTF-8's self-describing structure a decoder can tell *how many bytes a character takes* just by looking at the first byte's leading bits, and can tell whether it's *in the middle* of a character just by checking if a byte starts with `10`.
+
+That last observation is worth sitting with, but let's be precise about what it actually guarantees. Looking at a single byte tells you *one* thing for certain: whether it's a **continuation byte** (starts with `10xxxxxx`) or not. It does *not* tell you, by itself, where the character *started*.
+
+Take the emoji bytes from earlier: `F0 9F 98 8A`. If you land randomly on `98`, you can tell immediately it's a continuation byte but you don't yet know if the character began 1, 2, or 3 bytes earlier. You'd need to scan backwards (at most 3 bytes, since UTF-8 characters top out at 4 bytes) until you hit a byte that *isn't* a continuation byte that's the real start.
+
+The correct, more modest claim is: **UTF-8 lets a decoder detect continuation bytes and resynchronize quickly, without needing any external state or lookup table.** That's still a genuinely useful property it's why, say, a program can recover cleanly after landing mid-character in a stream it just isn't instant single-byte lookup. ASCII-only or fixed-width schemes don't even give you that much for free.
+
+## 6. The one-sentence summary
+
+**Unicode answers:** "What character is this?" → `U+2665 = ♥`
+
+**UTF-8 answers:** "How do we store that number as bytes?" → `♥ → E2 99 A5`
+
+Or, shortest version:
+
+> **Unicode is the map. UTF-8 is the vehicle carrying the map's addresses through the computer.**

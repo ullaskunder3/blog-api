@@ -927,5 +927,20 @@
             "architecture",
             "seo"
         ]
+    },
+    {
+        "id": 64,
+        "title": "How Computers Store Letters, Emojis, and Languages: Unicode and UTF-8 Explained",
+        "subtitle": "Learn how computers convert characters like A, 😊, and Chinese symbols into Unicode numbers and UTF-8 bytes for storage and communication.",
+        "slug": "how-computers-store-letters-emojis-and-languages-unicode-and-utf-8-explained",
+        "date": "2026-07-17",
+        "tags": [
+            "unicode",
+            "utf-8",
+            "encoding",
+            "binary",
+            "computer-science",
+            "go"
+        ]
     }
 ]
