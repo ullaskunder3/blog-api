@@ -942,5 +942,20 @@
             "computer-science",
             "go"
         ]
+    },
+    {
+        "id": 65,
+        "title": "Learning Golang: Strings, Arrays, Slices, and Structs",
+        "subtitle": "My notes on strings, arrays, slices, and structs in Go that I covered today",
+        "slug": "learning-golang-strings-arrays-slices-and-structs",
+        "date": "2026-08-06",
+        "tags": [
+            "golang",
+            "strings",
+            "arrays",
+            "slices",
+            "structs",
+            "programming"
+        ]
     }
 ]

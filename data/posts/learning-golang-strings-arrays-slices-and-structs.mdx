@@ -1,0 +1,229 @@
+---
+title: 'Learning Golang: Strings, Arrays, Slices, and Structs'
+subtitle: My notes on strings, arrays, slices, and structs in Go that I covered today
+id: 65
+date: '2026-08-06'
+tag:
+  - golang
+  - strings
+  - arrays
+  - slices
+  - structs
+  - programming
+prev: how-computers-store-letters-emojis-and-languages-unicode-and-utf-8-explained
+next: graphics-template
+---
+
+# Learning Golang: Strings, Arrays, Slices, and Structs
+
+Today, I spent some time diving into the fundamental data types in Go: **Strings**, **Arrays**, **Slices**, and **Structs**. I want to share my raw, practical notes and code snippets on how these work under the hood. If you're picking up Go, understanding the difference between Arrays and Slices, or how to organize data with Structs, is absolutely essential.
+
+Here is a breakdown of what I covered, complete with real code examples.
+
+## Strings in Go: Basic Operations (and the Golden Rule)
+
+Before we dive in, there's one **golden rule** you must know about strings in Go: **They are immutable**. 
+
+What does that mean? It means once you create a string, you can *never* change it. Every single method we're about to use—whether it's making text uppercase, replacing words, or joining parts together—**returns a brand new copy** of the string. The original string remains completely untouched! 
+
+Because strings are essentially read-only slices of bytes under the hood, you never have to worry about accidentally corrupting your original data. Go handles creating the new copy for you.
+
+Let's break down some of the most useful functions from the `strings` package:
+
+### 1. Prefix and Suffix checks
+Checking how a string starts or ends is perfect for parsing file extensions or URL routes.
+
+```go
+doesStartWith := strings.HasPrefix("Ullas", "Ul") // Returns true
+doesEndWith := strings.HasSuffix("Ullas", "as")   // Returns true
+```
+
+### 2. Casing
+Need to shout? Or whisper? You can easily convert the case. Remember, this doesn't modify your original word; it hands you a brand-new uppercase or lowercase string.
+
+```go
+upperCase := strings.ToUpper("ullas") // Returns "ULLAS"
+lowerCase := strings.ToLower("ULLAS") // Returns "ullas"
+```
+
+### 3. Search and Count
+Super handy for finding substrings without having to write your own manual `for` loops.
+
+```go
+contains := strings.Contains("Ullas", "ll") // Returns true
+count := strings.Count("Ullas", "l")        // Returns 2
+```
+
+### 4. Splitting and Joining
+These are two sides of the same coin. `Split` breaks a single string into a Slice of multiple strings based on a separator. `Join` takes a Slice and glues it back together into one string!
+
+```go
+sentence := "Ullas,is,a,good,boy"
+
+// Break it apart at the commas
+split := strings.Split(sentence, ",")     
+// Result: []string{"Ullas", "is", "a", "good", "boy"}
+
+// Glue it back together with hyphens
+joined := strings.Join(split, "-")        
+// Result: "Ullas-is-a-good-boy"
+```
+
+### 5. Replacing
+Swap out text in a snap. Again, this creates and returns a new string, leaving your original text safe and sound.
+
+```go
+replaced := strings.ReplaceAll("Ullas is a good boy", "good", "bad")
+fmt.Println(replaced) // Prints: "Ullas is a bad boy"
+```
+
+## Arrays vs. Slices: What's the Difference?
+
+In Go, **Arrays** and **Slices** look similar but behave very differently. 
+
+- **Arrays (`[N]T`)**: Have a fixed length known at compile-time. They cannot grow, and assigning an array to another variable copies *all* its elements.
+- **Slices (`[]T`)**: Have a dynamic length and can grow using `append()`. They act like references pointing to an underlying array.
+
+### Arrays are Value Types
+When you copy an array, you create a complete clone. Modifying the copy doesn't affect the original.
+
+```go
+// Array with fixed size of 3
+arr := [3]int{10, 20, 30}
+arr[0] = 100 // Modifying an element
+
+// Copying an array copies ALL elements
+arrCopy := arr
+arrCopy[1] = 999
+
+fmt.Println("Original:", arr)     // [100 20 30]
+fmt.Println("Copy    :", arrCopy) // [100 999 30]
+```
+
+### Slices act as References
+When you copy a slice, it still points to the same underlying array data. 
+
+```go
+slice := []int{10, 20, 30, 40}
+
+// Copying slice copies only the slice header (reference)
+sliceCopy := slice
+sliceCopy[1] = 999
+
+fmt.Println("Original :", slice)     // [10 999 30 40]
+fmt.Println("SliceCopy:", sliceCopy) // [10 999 30 40]
+
+// You can grow a slice using append
+slice = append(slice, 50) 
+```
+
+### Passing to Functions
+Because of these differences, passing them to functions yields different results. Arrays are passed by value (copied), whereas slices are passed by reference.
+
+```go
+func changeArray(a [3]int) {
+	a[0] = 999 // Won't affect original
+}
+
+func changeSlice(s []int) {
+	s[0] = 999 // Will modify the original slice's underlying array
+}
+```
+
+## Structs: Organizing Custom Data
+
+Structs allow you to group variables of different types under a single name. They are the backbone of data modeling in Go.
+
+### Creating and Modifying Structs
+
+```go
+type Student struct {
+	Name  string
+	Age   int
+	Marks float64
+}
+
+// Creating a struct with named fields
+student1 := Student{
+    Name: "Ullas",
+    Age: 22,
+    Marks: 95.5,
+}
+
+// Modifying fields
+student1.Age = 23
+
+// Positional initialization (less readable, but valid)
+student2 := Student{"Rahul", 20, 88}
+
+// Zero value struct (empty string, 0, 0.0)
+var student3 Student
+```
+
+### Nested Structs
+
+You can nest structs to create complex data models.
+
+```go
+type Address struct {
+	City string
+	Pin  int
+}
+
+type Employee struct {
+	Name    string
+	Age     int
+	Salary  float64
+	Address Address // Nested struct
+}
+
+employee := Employee{
+    Name: "Amit",
+    Age: 30,
+    Salary: 75000,
+    Address: Address{
+        City: "Mumbai",
+        Pin: 400001,
+    },
+}
+fmt.Println(employee.Address.City) // Mumbai
+```
+
+### Structs with Arrays and Slices
+
+You can easily group multiple structs together in an array or slice.
+
+```go
+// Slice of Structs
+studentsSlice := []Student{
+    {Name: "John", Age: 25, Marks: 80},
+    {Name: "David", Age: 24, Marks: 92},
+}
+
+// Modify struct inside a slice
+studentsSlice[0].Marks = 100
+```
+
+### Anonymous Structs
+
+If you only need a struct once, you don't even need to declare a `type`. You can use an anonymous struct inline.
+
+```go
+book := struct {
+    Title string
+    Price int
+}{
+    Title: "Go Programming",
+    Price: 500,
+}
+```
+
+## Summary
+
+That's a wrap on what I practiced today! To recap:
+- **Strings**: The `strings` package handles almost everything you need.
+- **Arrays**: Fixed size, passed by value.
+- **Slices**: Dynamic size, passed by reference, easily built from arrays using slicing (`array[1:4]`).
+- **Structs**: Go's way of defining custom objects and grouping data (even nested or anonymous!).
+
+I hope these practical examples help clear up how these fundamental types work in Go. Let me know if this was helpful!
